@@ -15,16 +15,16 @@ public class Test {
   public static void main(String[] args) throws FileNotFoundException, IOException {
     ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
     
-    new ClassBuilder<HelloWorld>(cw, V1_4, ACC_PUBLIC, HelloWorld.class, Object.class, null)    
+    new ClassBuilder(cw, V1_4, ACC_PUBLIC, "HelloWorld", "java/lang/Object", null)    
     .beginMethod(ACC_PUBLIC, "<init>", void.class)
     .aload0()
     .invokeVirtualVoid(INVOKESPECIAL, Object.class, "<init>")
     .returnVoid()
     .endMethod()
     
-    .beginMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
+    .beginStaticMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
     .getStatic(System.class, "out", PrintStream.class)
-    .aloadStatic0()
+    .aload0()
     .push(0)
     .arrayLoad(String[].class, Integer.class, String.class)
     .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class)
@@ -41,11 +41,20 @@ public class Test {
      * - Null type (must give explicit type?)
      * - Reuse (reset to initial, lose information)
      * - Control flow (reset to initial, lose information) 
-     * - Pass counter to disallow reusing obsolete instances
+     *  - Pass counter to disallow reusing obsolete instances
      * - Deprecate methods with wrong stack depth, etc
+     *   - Instead of just missing them
+     *   - Shift stack info when adding
+     *   - Ignore stack info when missed
+     *   - Both variants should produce a warning
      * - Different JARs for development (typesafe) and production (unsafe)
-     * - What type should aload0 return?
+     *   - Source compatible (no binary)
+     * - What type should aload0 return in a virtual method?
+     *   - Placeholder type? (Self.class)
+     *   - Also allow other renamable subtypes
      * - Different variable layout in virtual/static methods
+     *   - Handle by lifting "this" type to V0
+     *   - Also remove the "this" (O) from prefix
      */
   }
   

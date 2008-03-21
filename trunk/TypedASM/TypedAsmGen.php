@@ -28,15 +28,15 @@ import org.objectweb.asm.Type;
 
 public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($vnum) ?>> implements Opcodes{
   private MethodVisitor mv;
-  private ClassBuilder<O> cb;
+  private ClassBuilder cb;
   
-  public MethodBuilderS<?=$sd?>V<?=$vnum?>(ClassBuilder<O> cb, MethodVisitor mv) {
+  public MethodBuilderS<?=$sd?>V<?=$vnum?>(ClassBuilder cb, MethodVisitor mv) {
   	this.cb = cb;
     this.mv = mv;
     mv.visitCode();    
   }
   
-  public ClassBuilder<O> endMethod() {
+  public ClassBuilder endMethod() {
   	mv.visitMaxs(0, 0);
     mv.visitEnd();
     
@@ -191,24 +191,16 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   
   // VARIABLES
   
-    <? if ($sd < $sdMax) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", O".varV($vnum).">"; ?>
+    <? if ($sd < $sdMax && $vnum > 0) {
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
   public <?=$type ?> aload0() {
     mv.visitVarInsn(ALOAD, 0);
     return new <?=$type ?>(cb, mv);
   }
   <?}?>
   
-  <? if ($sd < $sdMax && $vnum > 0) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
-  public <?=$type ?> aloadStatic0() {
-    mv.visitVarInsn(ALOAD, 0);
-    return new <?=$type ?>(cb, mv);
-  }
-  <?}?>
-  
-  <? if ($sd < $sdMax && $vnum > 0) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
+  <? if ($sd < $sdMax && $vnum > 1) {
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V1".varV($vnum).">"; ?>
   public <?=$type ?> aload1() {
     mv.visitVarInsn(ALOAD, 1);
     return new <?=$type ?>(cb, mv);

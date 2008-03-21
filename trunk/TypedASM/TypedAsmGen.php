@@ -4,19 +4,8 @@
   $sd = $argv[3];
   $sdMax = $argv[4];
   
+
   function stackV($count) {
-	  for ($i = 0; $i < $count; $i++) {
-	  	echo ", S{$i}";
-	  }
-  }
-  
-  function varV($count) {
-	  for ($i = 0; $i < $count; $i++) {
-	  	echo ", V{$i}";
-	  }
-  }
-  
-  function stackVS($count) {
   	
 	  for ($i = 0; $i < $count; $i++) {
 	  	$result .= ", S{$i}";
@@ -24,7 +13,7 @@
 	  return $result;
   }
   
-  function varVS($count) {
+  function varV($count) {
 	  for ($i = 0; $i < $count; $i++) {
 	  	$result .= ", V{$i}";
 	  }
@@ -37,7 +26,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> implements Opcodes{
+public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($vnum) ?>> implements Opcodes{
   private MethodVisitor mv;
   private ClassBuilder<O> cb;
   
@@ -57,7 +46,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // CONSTRUCTION
   
   <? if ($sd < $sdMax) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", S".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> newInstance
   (Class<S> type) {
     mv.visitTypeInsn(NEW, type.getName().replace('.', '/'));
@@ -66,7 +55,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd < $sdMax) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", S".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> newArray(Class<S> type) {
     mv.visitTypeInsn(ANEWARRAY, type.getName().replace('.', '/'));
     return new <?=$type ?>(cb, mv);
@@ -76,7 +65,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // STACK MANIPULATION
   
   <? if ($sd < $sdMax) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", S".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> push(S value) {
     mv.visitLdcInsn(value);
     return new <?=$type ?>(cb, mv);
@@ -84,7 +73,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd >= 1) { 
-     $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackVS($sd - 1).varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
   public <?=$type ?> pop() {
     mv.visitInsn(POP);
     return new <?=$type ?>(cb, mv);
@@ -92,7 +81,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <? } ?>
   
   <? if ($sd >= 1 && $sd < $sdMax) { 
-  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", S".($sd-1).varVS($vnum).">"; ?>  
+  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".($sd-1).varV($vnum).">"; ?>  
   public <?=$type ?>  dup() {
     mv.visitInsn(DUP);
     return new <?=$type ?>(cb, mv);
@@ -102,7 +91,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // METHODS
   
   <? if ($sd >= 1) { 
-  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackVS($sd - 1).varVS($vnum).">"; ?>
+  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-1)?>> owner, String name) {
     mv.visitMethodInsn(
         kind, 
@@ -115,7 +104,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>    
   
   <? if ($sd >= 1) { 
-  	 $type = "MethodBuilderS".$sd."V".$vnum."<O".stackVS($sd - 1).", S".varVS($vnum).">"; ?>
+  	 $type = "MethodBuilderS".$sd."V".$vnum."<O".stackV($sd - 1).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-1)?>> owner, String name, Class<S> result) {
     mv.visitMethodInsn(
         kind, 
@@ -128,7 +117,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>  
   
   <? if ($sd >= 2) { 
-  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackVS($sd - 2).", S".varVS($vnum).">"; ?>
+  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 2).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-2)?>> owner, String name, Class< ? super S<?=($sd-1)?>> parameter1, Class<S> result) {
     mv.visitMethodInsn(
         kind, 
@@ -141,7 +130,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd >= 2) { 
-  	 $type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackVS($sd - 2).varVS($vnum).">"; ?>
+  	 $type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackV($sd - 2).varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-2)?>> owner, String name, Class< ? super S<?=($sd-1)?>> parameter1) {
     mv.visitMethodInsn(
         kind, 
@@ -154,7 +143,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd >= 3) { 
-  	$type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackVS($sd - 3).", S".varVS($vnum).">"; ?>
+  	$type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackV($sd - 3).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-3)?>> owner, String name, Class< ? super S<?=($sd-2)?>> parameter1, Class< ? super S<?=($sd-1)?>> parameter2, Class<S> result) {
     mv.visitMethodInsn(
         kind, 
@@ -167,7 +156,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd >= 3) { 
-  	$type = "MethodBuilderS".($sd - 3)."V".$vnum."<O".stackVS($sd - 3).varVS($vnum).">"; ?>
+  	$type = "MethodBuilderS".($sd - 3)."V".$vnum."<O".stackV($sd - 3).varV($vnum).">"; ?>
   public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-3)?>> owner, String name, Class< ? super S<?=($sd-2)?>> parameter1, Class< ? super S<?=($sd-1)?>> parameter2) {
     mv.visitMethodInsn(
         kind, 
@@ -182,7 +171,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // FIELDS
   
   <? if ($sd < $sdMax) { 
-  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", S".varVS($vnum).">"; ?>  
+  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>  
   public <S> <?=$type ?> getStatic(Class owner, String name, Class<S> type) {
     mv.visitFieldInsn(GETSTATIC, owner.getName().replace('.', '/'), name, Type.getDescriptor(type));
     return new <?=$type ?>(cb, mv);
@@ -192,7 +181,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // ARRAYS
   
   <? if ($sd >= 2) { 
-  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackVS($sd - 2).", S".varVS($vnum).">"; ?>
+  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 2).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> arrayLoad(Class<S<?=($sd-2)?>> target, Class<S<?=($sd-1)?>> index, Class<S> result) {
     mv.visitInsn(AALOAD);
     
@@ -203,7 +192,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   // VARIABLES
   
     <? if ($sd < $sdMax) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", O".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", O".varV($vnum).">"; ?>
   public <?=$type ?> aload0() {
     mv.visitVarInsn(ALOAD, 0);
     return new <?=$type ?>(cb, mv);
@@ -211,7 +200,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd < $sdMax && $vnum > 0) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", V0".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
   public <?=$type ?> aloadStatic0() {
     mv.visitVarInsn(ALOAD, 0);
     return new <?=$type ?>(cb, mv);
@@ -219,7 +208,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   <?}?>
   
   <? if ($sd < $sdMax && $vnum > 0) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackVS($sd).", V0".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
   public <?=$type ?> aload1() {
     mv.visitVarInsn(ALOAD, 1);
     return new <?=$type ?>(cb, mv);
@@ -228,21 +217,21 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? stackV($sd); varV($vnum) ?>> 
   
   // FLOW CONTROL
   
-  <? $type = "MethodBuilderS0V".$vnum."<O".varVS($vnum).">"; ?>
+  <? $type = "MethodBuilderS0V".$vnum."<O".varV($vnum).">"; ?>
   public <?=$type ?> returnVoid() {
     mv.visitInsn(RETURN);
     return new <?=$type ?>(cb, mv);
   }  
   
   <? if ($sd >= 1) { 
-     $type = "MethodBuilderS0V".$vnum."<O".varVS($vnum).">"; ?>
+     $type = "MethodBuilderS0V".$vnum."<O".varV($vnum).">"; ?>
   public <?=$type ?> returnValue(Class<S<?=($sd-1)?>> type) {
     mv.visitInsn(ARETURN);
     return new <?=$type ?>(cb, mv);
   }
   <?}?>
   
-  <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackVS($sd).varVS($vnum).">"; ?>  
+  <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?>  
   public <?=$type ?> goTo(Label label) {
     mv.visitJumpInsn(GOTO, label);
     return new <?=$type ?>(cb, mv);

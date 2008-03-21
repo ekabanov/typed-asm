@@ -38,15 +38,14 @@ public class Test {
     /*
      * Problems:
      * - Primitives
-     * - Variables (same as stack)
      * - Null type (must give explicit type?)
-     * - Return
      * - Reuse (reset to initial, lose information)
      * - Control flow (reset to initial, lose information) 
      * - Pass counter to disallow reusing obsolete instances
      * - Deprecate methods with wrong stack depth, etc
      * - Different JARs for development (typesafe) and production (unsafe)
      * - What type should aload0 return?
+     * - Different variable layout in virtual/static methods
      */
   }
   

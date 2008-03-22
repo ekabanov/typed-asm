@@ -13,9 +13,13 @@
 	  return $result;
   }
   
-  function varV($count) {
+  function varV($count, $index = -1, $value = "") {
 	  for ($i = 0; $i < $count; $i++) {
-	  	$result .= ", V{$i}";
+	  	if ($index == $i) {
+	  		$result .= ", {$value}";
+	  	}
+	  	else 
+	  		$result .= ", V{$i}";
 	  }
 	  return $result;
   }  
@@ -63,6 +67,21 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   <?}?>
   
   // STACK MANIPULATION
+  
+  <? if ($sd < $sdMax) {
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> assumePush(Class<S> type) {
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  <? if ($sd > 0) { 
+     $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
+  public <?=$type ?> assumePop() {
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>
+  
   
   <? if ($sd < $sdMax) {
      $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
@@ -191,20 +210,42 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   
   // VARIABLES
   
-    <? if ($sd < $sdMax && $vnum > 0) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V0".varV($vnum).">"; ?>
-  public <?=$type ?> aload0() {
-    mv.visitVarInsn(ALOAD, 0);
-    return new <?=$type ?>(cb, mv);
-  }
-  <?}?>
-  
-  <? if ($sd < $sdMax && $vnum > 1) {
-     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V1".varV($vnum).">"; ?>
-  public <?=$type ?> aload1() {
-    mv.visitVarInsn(ALOAD, 1);
-    return new <?=$type ?>(cb, mv);
-  }
+  <? for ($i = 0; $i <= $vnum; $i++) { ?>
+	  <? 
+	  if ($i < $vnum) {
+	     $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum, $i, V).">"; ?>
+	  public <V> <?=$type ?> assumeVar<?=$i?>(Class<V> type) {
+	    return new <?=$type ?>(cb, mv);
+	  }
+	  <?} else  if ($vnum < $vnumMax) {
+	    $type = "MethodBuilderS".($sd)."V".($vnum+1)."<O".stackV($sd).varV($vnum).", V>"; ?>
+	  public <V> <?=$type ?> assumeVar<?=$i?>(Class<V> type) {
+	    return new <?=$type ?>(cb, mv);
+	  }  		  	
+	  <?}?>  	
+  	
+  	  	  	  	
+	  <? if ($sd < $sdMax && $i < $vnum) {
+	     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", V".($i).varV($vnum).">"; ?>
+	  public <?=$type ?> loadVar<?=$i?>(Class<<?="V".($i)?>> type) {
+	    mv.visitVarInsn(ALOAD, <?=$i?>);
+	    return new <?=$type ?>(cb, mv);
+	  }
+	  <?}?>
+	  	  	  
+	  <? if ($sd > 0 && $i < $vnum) { 
+	     $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum, $i, "S".($sd-1)).">"; ?>
+	  public <?=$type ?> storeVar<?=$i?>(Class<<?="S".($sd-1)?>> type) {
+	    mv.visitVarInsn(ASTORE, <?=$i?>);
+	    return new <?=$type ?>(cb, mv);
+	  }
+	  <?} else if ($sd > 0 && $vnum < $vnumMax) { 
+	    $type = "MethodBuilderS".($sd)."V".($vnum+1)."<O".stackV($sd).varV($vnum).", S".($sd-1).">"; ?>
+	  public <?=$type ?> storeVar<?=$i?>(Class<<?="S".($sd-1)?>> type) {
+	    mv.visitVarInsn(ASTORE, <?=$i?>);
+	    return new <?=$type ?>(cb, mv);
+	  }  	
+	  <?}?>
   <?}?>
   
   // FLOW CONTROL
@@ -227,5 +268,34 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   public <?=$type ?> goTo(Label label) {
     mv.visitJumpInsn(GOTO, label);
     return new <?=$type ?>(cb, mv);
+  }
+  
+  // SUPPORT
+  
+  <? $type = "MethodBuilderS0V0<O>"; ?>
+  public <?=$type ?> reset() {
+    return new <?=$type ?>(cb, mv);
+  }
+  
+  <? $type = "MethodBuilderS0V".$vnum."<O".varV($vnum).">"; ?>
+  public <?=$type ?> resetStack() {
+    return new <?=$type ?>(cb, mv);
+  }     
+  
+  <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
+  public <?=$type?> sub(Sub sub) {
+  	sub.process(this.reset());
+  	return this;
+  }
+  
+  <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
+  public <?=$type?> sub(SubS<?=$sd."V".$vnum ?> sub) {
+  	sub.process(this);
+  	return this;
+  }
+  
+  <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
+  interface SubS<?=$sd."V".$vnum ?> {
+  	<?="<O".stackV($sd).varV($vnum).">"?> void process(<?=$type?> mb);
   }
 }

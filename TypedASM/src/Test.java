@@ -12,22 +12,36 @@ import static org.objectweb.asm.Opcodes.*;
 
 
 public class Test {
+  private static <O> void genSayHello(MethodBuilderS0V0<O> mb) {
+    mb.assumeVar0(String[].class)
+    .getStatic(System.class, "out", PrintStream.class)
+    .loadVar0(String[].class)
+    .push(0)
+    .arrayLoad(String[].class, Integer.class, String.class)
+    .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class);
+  }
+  
   public static void main(String[] args) throws FileNotFoundException, IOException {
     ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
     
     new ClassBuilder(cw, V1_4, ACC_PUBLIC, "HelloWorld", "java/lang/Object", null)    
     .beginMethod(ACC_PUBLIC, "<init>", void.class)
-    .aload0()
+    .loadVar0(Self.class)
     .invokeVirtualVoid(INVOKESPECIAL, Object.class, "<init>")
     .returnVoid()
     .endMethod()
     
     .beginStaticMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
-    .getStatic(System.class, "out", PrintStream.class)
-    .aload0()
-    .push(0)
-    .arrayLoad(String[].class, Integer.class, String.class)
-    .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class)
+    .sub(new Sub() {
+      public <O> void process(MethodBuilderS0V0<O> mb) {
+        genSayHello(mb);
+      }
+    })
+//    .getStatic(System.class, "out", PrintStream.class)
+//    .loadVar0(String[].class)
+//    .push(0)
+//    .arrayLoad(String[].class, Integer.class, String.class)
+//    .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class)
     .returnVoid()
     .endMethod();
     

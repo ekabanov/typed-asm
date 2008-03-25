@@ -283,19 +283,19 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   }     
   
   <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
-  public <?=$type?> sub(Sub sub) {
-  	sub.process(this.reset());
+  public <?=$type?> closure(Closure closure) {
+  	closure.apply(this.reset());
   	return this;
   }
   
   <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
-  public <?=$type?> sub(SubS<?=$sd."V".$vnum ?> sub) {
-  	sub.process(this);
+  public <?=$type?> closure(ClosureS<?=$sd."V".$vnum ?> closure) {
+  	closure.apply(this);
   	return this;
   }
   
   <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?> 
-  interface SubS<?=$sd."V".$vnum ?> {
-  	<?="<O".stackV($sd).varV($vnum).">"?> void process(<?=$type?> mb);
+  interface ClosureS<?=$sd."V".$vnum ?> {
+  	<?="<O".stackV($sd).varV($vnum).">"?> void apply(<?=$type?> mb);
   }
 }

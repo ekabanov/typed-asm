@@ -32,8 +32,9 @@ public class Test {
     .endMethod()
     
     .beginStaticMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
-    .sub(new Sub() {
-      public <O> void process(MethodBuilderS0V0<O> mb) {
+    .getStatic(System.class, "out", PrintStream.class)
+    .closure(new Closure() {
+      public <O> void apply(MethodBuilderS0V0<O> mb) {
         genSayHello(mb);
       }
     })

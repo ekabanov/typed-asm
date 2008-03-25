@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="TypedASM">
+
+  <!-- Clean up build system results -->
+  <target name="clean" description="Clean up build system results">
+    <delete dir="build" failonerror="false" />
+    <delete dir="dist" failonerror="false" />
+  </target>
+
+  <!-- Initialize the build system -->
+  <target name="init">
+    <mkdir dir="build" />
+  </target>
+  
+  <!--Set the classpath-->
+  <path id="classpath">
+    <fileset dir="." includes="**/*.jar" />
+  </path>
+
+
+  <target name="compile" depends="init">
+    <mkdir dir="build/classes" />
+
+    <javac destdir="build/classes" classpathref="classpath" debug="on" debuglevel="lines,vars,source" encoding="utf-8" target="1.5" source="1.5" deprecation="yes" failonerror="false">
+      <src>
+        <pathelement path="src" />
+        <pathelement path="gen" />
+      </src>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile">
+    <mkdir dir="dist" />
+
+    <jar destfile="dist/TypedAsm.jar" compress="true">
+      <fileset dir="build/classes" />
+      <fileset dir="src" />
+    </jar>
+
+    <copy todir="dist/">
+      <fileset dir=".">
+        <exclude name="build/**" />
+        <exclude name="dist/**" />
+        <exclude name="bin/**" />
+      </fileset>
+    </copy>
+    
+    <zip destfile="TypedAsm.zip" >
+      <zipfileset dir="dist" prefix="TypedAsm"/>
+    </zip>
+  </target>
+</project>
+

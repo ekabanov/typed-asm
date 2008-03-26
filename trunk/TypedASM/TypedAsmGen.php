@@ -108,84 +108,101 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   <?}?>
   
   // METHODS
-  
-  <? if ($sd >= 1) { 
-  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-1)?>> owner, String name) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] {}));
-    
-    return new <?=$type ?>(cb, mv);
+
+  <? $type = "InvokeBuilderS".$sd."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?>
+  public <?=$type?> invokeBuilder() {
+    return new <?=$type?>(new Type[] {}, cb, mv);
   }
-  <?}?>    
+
+
+  <? $type = "InvokeBuilderS".$sd."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?>
   
-  <? if ($sd >= 1) { 
-  	 $type = "MethodBuilderS".$sd."V".$vnum."<O".stackV($sd - 1).", S".varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-1)?>> owner, String name, Class<S> result) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.getType(result), new Type[] {}));
+  public static class <?=$type?> {
+    private final ClassBuilder cb;
+    private final MethodVisitor mv;
+    private final Type[] args;
     
-    return new <?=$type ?>(cb, mv);
+    <?="InvokeBuilderS".$sd."V".$vnum?>(Type[] args, ClassBuilder cb, MethodVisitor mv) {
+      this.args = args;
+      this.mv = mv;
+      this.cb = cb;
+    }
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd-1).", S".varV($vnum).">"; ?>
+    public <S> <?=$type?> invokeVirtual(Class < ? super S<?=($sd-1)?>> owner, String name, Class<S> type) {
+      mv.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.getType(type), args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd-1)."V".$vnum."<O".stackV($sd-1).varV($vnum).">"; ?>
+    public <?=$type?> invokeVirtualVoid(Class < ? super S<?=($sd-1)?>> owner, String name) {
+      mv.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.VOID_TYPE, args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>    
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd-1).", S".varV($vnum).">"; ?>
+    public <S> <?=$type?> invokeSpecial(Class < ? super S<?=($sd-1)?>> owner, String name, Class<S> type) {
+      mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.getType(type), args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd-1)."V".$vnum."<O".stackV($sd-1).varV($vnum).">"; ?>
+    public <?=$type?> invokeSpecialVoid(Class < ? super S<?=($sd-1)?>> owner, String name) {
+      mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.VOID_TYPE, args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>      
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd-1).", S".varV($vnum).">"; ?>
+    public <S> <?=$type?> invokeInterface(Class < ? super S<?=($sd-1)?>> owner, String name, Class<S> type) {
+      mv.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.getType(type), args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>
+    
+    <? if ($sd >= 1) { 
+       $type = "MethodBuilderS".($sd-1)."V".$vnum."<O".stackV($sd-1).varV($vnum).">"; ?>
+    public <?=$type?> invokeInterfaceVoid(Class < ? super S<?=($sd-1)?>> owner, String name) {
+      mv.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.VOID_TYPE, args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?> 
+    
+    <? if ($sd < $sdMax) { 
+       $type = "MethodBuilderS".($sd+1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
+    public <S> <?=$type?> invokeStatic(Class owner, String name, Class<S> type) {
+      mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.getType(type), args));
+      return new <?=$type?>(cb, mv);
+    }
+    <? } ?>
+    
+
+       <? $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd).varV($vnum).">"; ?>
+    public <?=$type?> invokeStaticVoid(Class owner, String name) {
+      mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(owner), name, Type.getMethodDescriptor(Type.VOID_TYPE, args));
+      return new <?=$type?>(cb, mv);
+    }        
+
+    
+    <? if ($sd >= 1) {
+    	 $type = "MethodBuilderS".($sd-1)."V".$vnum.".InvokeBuilderS".($sd-1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
+    public <?=$type?> param(Class< ? super S<?=$sd-1?>> type) {
+      Type[] newArgs = new Type[args.length + 1];
+      newArgs[newArgs.length - 1] = Type.getType(type);
+      System.arraycopy(args, 0, newArgs, 0, args.length);
+      return new <?=$type?>(newArgs, cb, mv);
+    }
+    <? } ?>
   }
-  <?}?>  
   
-  <? if ($sd >= 2) { 
-  	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 2).", S".varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-2)?>> owner, String name, Class< ? super S<?=($sd-1)?>> parameter1, Class<S> result) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.getType(result), new Type[] {Type.getType(parameter1)}));
-    
-    return new <?=$type ?>(cb, mv);
-  }
-  <?}?>
-  
-  <? if ($sd >= 2) { 
-  	 $type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackV($sd - 2).varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-2)?>> owner, String name, Class< ? super S<?=($sd-1)?>> parameter1) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] {Type.getType(parameter1)}));
-    
-    return new <?=$type ?>(cb, mv);
-  }
-  <?}?>
-  
-  <? if ($sd >= 3) { 
-  	$type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackV($sd - 3).", S".varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtual(int kind, Class< ? super S<?=($sd-3)?>> owner, String name, Class< ? super S<?=($sd-2)?>> parameter1, Class< ? super S<?=($sd-1)?>> parameter2, Class<S> result) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.getType(result), new Type[] {Type.getType(parameter1), Type.getType(parameter2)}));
-    
-    return new <?=$type ?>(cb, mv);
-  }  
-  <?}?>
-  
-  <? if ($sd >= 3) { 
-  	$type = "MethodBuilderS".($sd - 3)."V".$vnum."<O".stackV($sd - 3).varV($vnum).">"; ?>
-  public <S> <?=$type ?> invokeVirtualVoid(int kind, Class< ? super S<?=($sd-3)?>> owner, String name, Class< ? super S<?=($sd-2)?>> parameter1, Class< ? super S<?=($sd-1)?>> parameter2) {
-    mv.visitMethodInsn(
-        kind, 
-        owner.getName().replace('.', '/'), 
-        name, 
-        Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] {Type.getType(parameter1), Type.getType(parameter2)}));
-    
-    return new <?=$type ?>(cb, mv);
-  }  
-  <?}?>
   
   // FIELDS
   

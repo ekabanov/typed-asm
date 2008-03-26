@@ -18,7 +18,7 @@ public class Test {
     .loadVar0(String[].class)
     .push(0)
     .arrayLoad(String[].class, Integer.class, String.class)
-    .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class);
+    .invokeBuilder().param(String.class).invokeVirtualVoid(PrintStream.class, "println");
   }
   
   public static void main(String[] args) throws FileNotFoundException, IOException {
@@ -27,22 +27,22 @@ public class Test {
     new ClassBuilder(cw, V1_4, ACC_PUBLIC, "HelloWorld", "java/lang/Object", null)    
     .beginMethod(ACC_PUBLIC, "<init>", void.class)
     .loadVar0(Self.class)
-    .invokeVirtualVoid(INVOKESPECIAL, Object.class, "<init>")
+    .invokeBuilder().invokeSpecialVoid(Object.class, "<init>")
     .returnVoid()
     .endMethod()
     
     .beginStaticMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
-    .getStatic(System.class, "out", PrintStream.class)
-    .closure(new Closure() {
-      public <O> void apply(MethodBuilderS0V0<O> mb) {
-        genSayHello(mb);
-      }
-    })
 //    .getStatic(System.class, "out", PrintStream.class)
-//    .loadVar0(String[].class)
-//    .push(0)
-//    .arrayLoad(String[].class, Integer.class, String.class)
-//    .invokeVirtualVoid(INVOKEVIRTUAL, PrintStream.class, "println", String.class)
+//    .closure(new Closure() {
+//      public <O> void apply(MethodBuilderS0V0<O> mb) {
+//        genSayHello(mb);
+//      }
+//    })
+    .getStatic(System.class, "out", PrintStream.class)
+    .loadVar0(String[].class)
+    .push(0)
+    .arrayLoad(String[].class, Integer.class, String.class)    
+    .invokeBuilder().param(String.class).invokeVirtualVoid(PrintStream.class, "println")
     .returnVoid()
     .endMethod();
     

@@ -18,7 +18,7 @@ public class Test {
     .loadVar0(String[].class)
     .push(0)
     .arrayLoad(String[].class, Integer.class, String.class)
-    .invokeBuilder().param(String.class).invokeVirtualVoid(PrintStream.class, "println");
+    .invoke().param(String.class).virtVoid(PrintStream.class, "println");
   }
   
   public static void main(String[] args) throws FileNotFoundException, IOException {
@@ -27,7 +27,7 @@ public class Test {
     new ClassBuilder(cw, V1_4, ACC_PUBLIC, "HelloWorld", "java/lang/Object", null)    
     .beginMethod(ACC_PUBLIC, "<init>", void.class)
     .loadVar0(Self.class)
-    .invokeBuilder().invokeSpecialVoid(Object.class, "<init>")
+    .invoke().specVoid(Object.class, "<init>")
     .returnVoid()
     .endMethod()
     
@@ -42,7 +42,7 @@ public class Test {
     .loadVar0(String[].class)
     .push(0)
     .arrayLoad(String[].class, Integer.class, String.class)    
-    .invokeBuilder().param(String.class).invokeVirtualVoid(PrintStream.class, "println")
+    .invoke().param(String.class).virtVoid(PrintStream.class, "println")
     .returnVoid()
     .endMethod();
     

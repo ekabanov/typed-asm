@@ -51,8 +51,7 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   
   <? if ($sd < $sdMax) {
      $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
-  public <S> <?=$type ?> newInstance
-  (Class<S> type) {
+  public <S> <?=$type ?> newInstance(Class<S> type) {
     mv.visitTypeInsn(NEW, type.getName().replace('.', '/'));
     return new <?=$type ?>(cb, mv);
   }
@@ -82,6 +81,15 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   }
   <? } ?>
   
+
+  <? if ($sd < $sdMax) {
+     $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> pushNull(Class<S> type) {
+    mv.visitLdcInsn(ACONST_NULL);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+
   
   <? if ($sd < $sdMax) {
      $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".varV($vnum).">"; ?>
@@ -91,6 +99,15 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   }
   <?}?>
   
+  <? if ($sd < $sdMax - 1) {
+     $type = "MethodBuilderS".($sd + 2)."V".$vnum."<O".stackV($sd).", S, S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> push2(S value) {
+    mv.visitLdcInsn(value);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  
   <? if ($sd >= 1) { 
      $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 1).varV($vnum).">"; ?>
   public <?=$type ?> pop() {
@@ -99,6 +116,23 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   }
   <? } ?>
   
+  <? if ($sd >= 2) { 
+     $type = "MethodBuilderS".($sd - 2)."V".$vnum."<O".stackV($sd - 2).varV($vnum).">"; ?>
+  public <?=$type ?> pop2() {
+    mv.visitInsn(POP2);
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>  
+
+  <? if ($sd >= 2) { 
+  	 $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd-2).", S".($sd-1).", S".($sd-2).varV($vnum).">"; ?>  
+  public <?=$type ?>  swap() {
+    mv.visitInsn(SWAP);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+
+  
   <? if ($sd >= 1 && $sd < $sdMax) { 
   	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd).", S".($sd-1).varV($vnum).">"; ?>  
   public <?=$type ?>  dup() {
@@ -106,6 +140,81 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
     return new <?=$type ?>(cb, mv);
   }
   <?}?>
+  
+  <? if ($sd >= 2 && $sd < $sdMax) { 
+  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd-2).", S".($sd-1).", S".($sd-2).", S".($sd-1).varV($vnum).">"; ?>  
+  public <?=$type ?>  dup_x1() {
+    mv.visitInsn(DUP_X1);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  <? if ($sd >= 3 && $sd < $sdMax) { 
+  	 $type = "MethodBuilderS".($sd + 1)."V".$vnum."<O".stackV($sd-3).", S".($sd-1).", S".($sd-3).", S".($sd-2).", S".($sd-1).varV($vnum).">"; ?>  
+  public <?=$type ?>  dup_x2() {
+    mv.visitInsn(DUP_X2);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  
+  <? if ($sd >= 2 && $sd < $sdMax - 1) { 
+  	 $type = "MethodBuilderS".($sd + 2)."V".$vnum."<O".stackV($sd).", S".($sd-2).", S".($sd-1).varV($vnum).">"; ?>  
+  public <?=$type ?>  dup2() {
+    mv.visitInsn(DUP2);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  <? if ($sd >= 3 && $sd < $sdMax - 1) { 
+  	 $type = "MethodBuilderS".($sd + 2)."V".$vnum."<O".stackV($sd-3).", S".($sd-2).", S".($sd-1).", S".($sd-3).", S".($sd-2).", S".($sd-1).varV($vnum).">"; ?>  
+  public <?=$type ?>  dup2_x1() {
+    mv.visitInsn(DUP2_X1);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  <? if ($sd >= 4 && $sd < $sdMax - 1) { 
+  	 $type = "MethodBuilderS".($sd + 2)."V".$vnum."<O".stackV($sd-4).", S".($sd-2).", S".($sd-1).", S".($sd-4).", S".($sd-3).", S".($sd-2).", S".($sd-1).varV($vnum).">"; ?>  
+  public <?=$type ?>  dup2_x2() {
+    mv.visitInsn(DUP2_X2);
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>  
+  
+  // CONVERSION
+  
+  <? if ($sd >= 2) { 
+     $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 2).", S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> big2Small(Class<<?="S".($sd-1)?>> bigType1, Class<<?="S".($sd-2)?>> bigType2, Class<S> result) {
+    GenUtil.cast(mv, Type.getType(bigType1), Type.getType(result));
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>
+  
+  <? if ($sd >= 2) { 
+     $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd - 2).", S, S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> big2Big(Class<<?="S".($sd-1)?>> bigType1, Class<<?="S".($sd-2)?>> bigType2, Class<S> result1, Class<S> result2) {
+    GenUtil.cast(mv, Type.getType(bigType1), Type.getType(result1));
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>
+  
+  <? if ($sd >= 1 && $sd < $sdMax) { 
+     $type = "MethodBuilderS".($sd+1)."V".$vnum."<O".stackV($sd - 1).", S, S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> small2Big(Class<<?="S".($sd-1)?>> smallType, Class<S> result1, Class<S> result2) {
+    GenUtil.cast(mv, Type.getType(smallType), Type.getType(result1));
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>
+  
+  <? if ($sd >= 1) { 
+     $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd - 1).", S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> small2Small(Class<<?="S".($sd-1)?>> smallType, Class<S> result) {
+    GenUtil.cast(mv, Type.getType(smallType), Type.getType(result));
+    return new <?=$type ?>(cb, mv);
+  }
+  <? } ?>    
   
   // METHODS
 
@@ -219,11 +328,39 @@ public class MethodBuilderS<?=$sd?>V<?=$vnum?><O<? echo stackV($sd); echo varV($
   <? if ($sd >= 2) { 
   	 $type = "MethodBuilderS".($sd - 1)."V".$vnum."<O".stackV($sd - 2).", S".varV($vnum).">"; ?>
   public <S> <?=$type ?> arrayLoad(Class<S<?=($sd-2)?>> target, Class<S<?=($sd-1)?>> index, Class<S> result) {
-    mv.visitInsn(AALOAD);
+    GenUtil.arrayLoad(mv, Type.getType(result));
+    
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>
+  
+  <? if ($sd >= 2) { 
+  	 $type = "MethodBuilderS".($sd)."V".$vnum."<O".stackV($sd - 2).", S".", S".varV($vnum).">"; ?>
+  public <S> <?=$type ?> arrayLoadBig(Class<S<?=($sd-2)?>> target, Class<S<?=($sd-1)?>> index, Class<S> result1, Class<S> result2) {
+    GenUtil.arrayLoad(mv, Type.getType(result1));
     
     return new <?=$type ?>(cb, mv);
   }
   <?}?>  
+  
+  <? if ($sd >= 3) { 
+  	 $type = "MethodBuilderS".($sd - 3)."V".$vnum."<O".stackV($sd - 3).varV($vnum).">"; ?>
+  public <?=$type ?> arrayStore(Class<S<?=($sd-3)?>> target, Class<S<?=($sd-2)?>> index, Class<S<?=($sd-1)?>> type) {
+    GenUtil.arrayStore(mv, Type.getType(result));
+    
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>  
+  
+  <? if ($sd >= 4) { 
+  	 $type = "MethodBuilderS".($sd - 4)."V".$vnum."<O".stackV($sd - 4).varV($vnum).">"; ?>
+  public <?=$type ?> arrayStore(Class<S<?=($sd-4)?>> target, Class<S<?=($sd-3)?>> index, Class<S<?=($sd-2)?>> bigType1, Class<S<?=($sd-2)?>> bigType2) {
+    GenUtil.arrayStore(mv, Type.getType(result));
+    
+    return new <?=$type ?>(cb, mv);
+  }
+  <?}?>   
+    
   
   // VARIABLES
   

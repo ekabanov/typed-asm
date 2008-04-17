@@ -1,0 +1,406 @@
+%\documentclass[12pt,a4paper]{report}
+%\documentclass{acm_proc_article-sp}
+\documentclass{sig-alternate}
+
+\usepackage{url}
+\usepackage{graphics}
+\usepackage{epsfig}
+\usepackage[
+  pdftex,
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  bookmarksopen=true,
+  pdfpagemode=UseOutlines,
+  pdfstartview=FitH]{hyperref}
+
+\sloppy
+
+\begin{document}
+
+\title{Embedded Typesafe Domain Specific Languages for Java} 
+
+\numberofauthors{2}
+\author{
+	\alignauthor 
+		Jevgeni Kabanov\\
+       \affaddr{Dept. of Computer Science}\\
+       \affaddr{University of Tartu}\\
+       \affaddr{Liivi 2, Tartu, Estonia}\\
+		\email{ekabanov@gmail.com}
+	\alignauthor 
+		Rein Raudj\"arv\\
+       \affaddr{Dept. of Computer Science}\\
+       \affaddr{University of Tartu}\\
+       \affaddr{Liivi 2, Tartu, Estonia}\\
+		\email{reinra@gmail.com}
+}
+
+\date{}
+
+\maketitle
+
+\begin{abstract}
+With projects like jMock and Hibernate Criteria Query embedded DSLs have been introduced into Java. We describe two case studies that develop embedded typesafe DSLs for building SQL queries and engineering Java bytecode. We proceed to extract several patterns useful for developing a typesafe DSL for arbitrary domains. We also show the limits of type safety that can be achieved in Java. Both projects developed for the case study are available as open source.
+\end{abstract}
+
+%\tableofcontents
+
+\section{Introduction}
+
+\section{Typesafe SQL}
+
+Let's start with a very simple example of an SQL query in Java. 
+\begin{verbatim}
+ResultSet rs = SqlUtil.executeQuery(
+  "SELECT name, height, birthday" + 
+  "FROM person" +
+  "WHERE height >= " + 170);
+while (rs.next()) {
+   String name = rs.getString("name");
+   Integer height = rs.getInt("height");
+   Date birthday = rs.getDate("birthday");
+   System.out.println(
+     name + " " + height + " " + birthday);
+}
+\end{verbatim}
+
+Already this example, simple as it is, illustrates the mistakes we can make:
+\begin{itemize}
+\item We could have misspelled any SQL command, like ``SELETC''.
+\item We could be misspelling the table name or the field names.
+\item We could be mistaken about the field type (e.g. height being a \emph{boolean}, where \emph{true} means ``over 170 cm'').
+\item We could be reading wrong types from the result set.
+\end{itemize}
+The problem is that we would only find out about those errors when the query is executed. To make it worse, some errors would not even be reported and since most queries are assembled dynamically we can't ever be sure that it is error free.
+
+The solution we propose is to build on recent innovation in the area and embeds the whole of the SQL as a typesafe embedded DSL. The following example shows what we propose it to look like:
+
+\begin{verbatim}
+Person p = new Person();
+
+List<Tuple3<String, Integer, Date>> persons = 
+  new QueryBuilder(datasource)
+  .from(p)
+  .select(p.name, p.height, p.birthday)
+  .where(gt(p.height, 170)
+  .find();
+for (Tuple3<String, Integer, Date> person : persons) {
+  String name = person.v1();
+  Integer height = person.v2();
+  Date birthday = person.v3();
+  System.out.println(
+    name + " " + height + " " + birthday);
+}
+\end{verbatim}
+
+Although this example does the same as the previous there is not a single string and any kind of misspelling or type inconsistency will show immediately as a compile-time error\footnote{Even more importantly with a sufficiently advanced IDE it will be marked as an error directly in the text of the program providing immediate feedback.}. In the following sections we explain how to achieve full type safety in this DSL.
+
+\subsection{Tuples}
+
+You may have already noticed that we make sure the result set types are not inconsistent by combining them into a class called \verb!Tuple3!.
+
+Tuples are sequence of values where each component of a tuple is a value of specified type. Often used in functional languages they are not natively supported in Java. All the same the corresponding classes can be easily generated. For example a tuple with the length of two is following:
+
+\begin{verbatim}
+public class Tuple2<T1, T2> implements Tuple {
+  public final T1 v1;
+  public final T2 v2;
+
+  public Tuple2(T1 v1, T2 v2) {
+    this.v1 = v1;
+    this.v2 = v2;
+  }		
+
+  public T1 v1() { return v1; }
+  public T2 v2() { return v2; }
+}
+\end{verbatim}
+
+We use tuples to return the query results with the right types. Instead of \verb!Tuple1! we can just use the unboxed type.
+
+\subsection{Metadata Dictionary}
+
+The first step towards type safety of the query itself is ensuring that table and column names we use do in fact exist and are spelled correctly. To ensure that we use the database metadata about the tables and columns to generate a typesafe \emph{metadata dictionary}.
+
+Metadata dictionary is a set of information about database describing tables and columns with their types. In Java the dictionary of the table Person could be the following\footnote{We do not care how the dictionary is generated as it is irrelevant to how it can be used}:
+
+\begin{verbatim}
+public class Person implements Table {
+  public String getName() { return "person"; };
+
+  public Column<Person, String> name = 
+    new Column<Person, String>(
+      this, "name", String.class);
+  public Column<Person, Integer> height = 
+    new Column<Person, Integer>(
+      this, "height", Integer.class);
+  public Column<Person, Date> birthday = 
+    new Column<Person, Date>(
+      this, "birthday", Date.class);
+}
+\end{verbatim}
+
+This metadata dictionary for the \verb!Person! table associates the table with its name and columns. Each field is in turn associated with its name, type and owner table. The generic type variables in the column definition provide us with compile-time type information.
+
+\subsection{Builders}
+
+To make use of the metadata we need to build the query itself. We proceed by separating the query building into stages (\emph{from}, \emph{where}, \emph{select},~\ldots) and delegating a \emph{builder} for each of those stages. Thus we can make sure that the basic syntax of the query is always correct by making it impossible to write it wrongly without a compile-time error.
+
+One of the main idioms in creating Java DSLs is hiding the return type by chaining the calls on the previous call result. Although typically most methods will return ``this'' we can use it to stage the query building and allow only relevant methods to be called.
+
+To examine this in detail let's recall our previous example, but omit the ``where'' part for the moment:
+
+\begin{verbatim}
+Person p = new Person();
+
+List<Tuple3<String, Integer, Date>> persons = 
+  new QueryBuilder(datasource)
+  .from(p)
+  .select(p.name, p.height, p.birthday)
+  .find();
+\end{verbatim}
+
+
+The \verb!QueryBuilder! does not do much more than store the datasource. The \verb!from()! method returns the \verb!FromBuilder! that stores the table from the dictionary:
+
+\begin{verbatim}
+public class QueryBuilder {
+  ...
+  public <T extends Table> FromBuilder<T> 
+    from(T table);
+}
+\end{verbatim}
+
+The \verb!FromBuilder.select()! method returns \verb!SelectBuilder3! that stores three specific columns from the table. 
+
+\begin{verbatim}
+public class FromBuilder<T extends Table> 
+  extends QueryBuilder {
+  ...
+  public <C1> SelectBuilder1<T, C1> 
+    select(Column<T, C1> c1);
+  public <C1, C2> SelectBuilder2<T, C1, C2> 
+    select(Column<T, C1> c1, Column<T, C2> c2);
+  public <C1, C2, C3> SelectBuilder3<T, C1, C2, C3> 
+    select(
+      Column<T, C1> c1, 
+      Column<T, C2> c2, 
+      Column<T, C3> c3);
+  ...
+}
+\end{verbatim}
+
+Note that instead of having only one \verb!SelectBuilder! we choose to have many of them, numbered according to the amount of columns selected. Each of them carries all of the selected column types as generic type variables. This type variables can be used to generate tupled result or use the query as a subquery in a \emph{from} clause.
+
+Finally \verb!SelectBuilder3.find()! constructs the SQL query, executes it and returns the result:
+
+\begin{verbatim}
+public class SelectBuilder3<T extends Table,C1,C2,C3> 
+  extends FromBuilder<T> {
+  ...
+  public List<Tuple3<C1,C2,C3>> find() { ... }
+} 
+\end{verbatim}
+
+Note that since our builders carry the type of the table passed in \verb!from()! and that the \verb!FromBuilder! only accepts the columns belonging to the same type. This provides additional safety as the programmer cannot select fields from a table that was not written in from.
+
+However this solution is hard to extend when there is more than one table in the \emph{from} clause. Although we could apply the same idiom and tuple all the builders over the \emph{from} table types, but it's hard to later use this types in the actual methods. The problem is that to check the type we need the programmer to explicitly set the index of the table type in the from clause (e.g. by writing \verb!select1()!, \verb!select2()!,~\ldots). Since this is uncomfortable and is influenced by changes in \emph{from} clause we decided to leave this check out altogether and the builders do not carry the table types at all.
+
+\subsection{Expressions}
+
+Now that we have the basic structure of the SQL queries set we need to encode arbitrary functions, aggregates and expressions. In a usual fluent interface they would be accessible using the same chained notation we used for building the query. However we chose instead to use static methods, imported to the local namespace using the \verb!import static! feature introduced in Java 5.
+
+As far as we care a general SQL expression can be expressed with the following interface:
+
+\begin{verbatim}
+public interface Expression<E> {
+  String getSqlString();
+  List<Object> getSqlArguments();
+  Class<E> getType();		
+}
+\end{verbatim}
+
+The \verb!E! type variable is the type of the value that the expression produces on evaluation. The corresponding class is returned by the \verb!getType()! method. Finally \verb!getSqlString()! returns the corresponding SQL fragment and \verb!getSqlArguments()! returns the arguments to be inserted instead of ``?'' in the query. 
+
+In \emph{where} clause we only permit to use expressions of type \verb!Expression<Boolean>!\footnote{Since we would like to permit arbitrary many such expressions to be passed to methods the ``varargs'' feature introduced in Java 5 is used. However since array component types cannot be generic we have to introduce the \texttt{BooleanExpression extends Expression$<$Boolean$>$} which complicates things a bit. We ignore this complication in the examples.} such as "like", "$<$", "=", etc. The operands of these expressions can already be arbitrary. To create these expressions we could use the following API:
+
+\begin{verbatim}
+public class ExpressionUtil {
+  public static <E> Expression<E> 
+    constant(E value);
+
+  public static <E> Expression<Boolean> 
+    eq(Expression<E> e1, Expression<E> e2);
+
+  public static <E> Expression<Boolean> 
+    gt(Expression<E> e1, Expression<E> e2);
+
+  public static <E> Expression<Boolean> 
+    lt(Expression<E> e1, Expression<E> e2);
+
+  public static <E> Expression<Boolean> 
+    like(Expression<E> e, Expression<String> pattern);
+
+  public static Expression<Boolean> 
+    not(Expression<Boolean> e);
+
+  public static Expression<Boolean> 
+    and(Expression<Boolean>... e);
+
+  public static Expression<Boolean> 
+    or(Expression<Boolean>... e);
+}
+\end{verbatim}
+
+The \verb!constant()! method returns an expression corresponding to the value. Since we can overload all of the methods to also accept basic values and just call \verb!constant()! for them we will not call it explicitly in the upcoming examples.
+
+Now that we introduced the \verb!Expression! type we can finally define the \verb!Column! type we used to encode column metadata:
+
+\begin{verbatim}
+public class Column<T extends Table, C> 
+  implements Expression<C> {
+  ...
+  public Class<C> 
+    getType() { return type; }
+  public String 
+    getSqlString() { return name; }
+  public List<Object> 
+    getSqlArguments() { return null; }		
+}
+\end{verbatim}
+
+It is as straightforward as the constant expression and just returns the name of the column as the SQL fragment.
+
+We can now easily encode the expression \verb!WHERE name = 'Peter' or height > 170!:
+
+\begin{verbatim}
+List<Tuple3<String, Integer, Date>> persons = 
+  new QueryBuilder(datasource)
+    .from(Person.TABLE)
+    .where(or(
+      eq(Person.NAME, "Peter"),
+      gt(Person.HEIGHT, 170))
+    )
+    .select(Person.NAME, Person.HEIGHT, Person.BIRTHDAY)
+    .find();
+\end{verbatim}
+
+
+So far we have only allowed to select columns from the table. In general we want to select an arbitrary expression (such as \verb!name || ', ' || birthday!). Therefore the \verb!FromBuilder! class should just accept \verb!Expression!s instead of \verb!Column!s:
+
+\begin{verbatim}
+public class FromBuilder extends QueryBuilder {
+  ...
+  public <C1> SelectBuilder1<C1> 
+    select(Expression<C1> c1);
+  public <C1, C2> SelectBuilder2<C1, C2> 
+    select(Expression<C1> c1, Expression<C2> c2);
+  public <C1, C2, C3> SelectBuilder3<C1, C2, C3> 
+    select(
+      Expression<C1> c1, 
+      Expression<C2> c2, 
+      Expression<C3> c3);
+  ...
+}
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Aliases}
+
+\textbf{TODO:} Table aliases are simple and boring. I wanted here described the expression aliases that can be used to introduce expressions into both select and where clauses. E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_name != "Jevgeni Kabanov"''. This would look like 
+\begin{verbatim}
+  Person p = new Person();
+  Alias<String> fullName = 
+    concat(p.firstName, " ", p.last_name);
+  new QueryBuilder(datasource)
+    .from(p)
+    .where(not(eq(fullName, "Jevgeni Kabanov")))
+    .select(fullName);
+\end{verbatim}
+
+\textbf{TODO:} Everything else concerning tables in this section was obvious, this example is enough:
+
+\begin{verbatim}
+Person person = new Person();
+Person father = new Person();
+
+List<Tuple2<String, String>> names = 
+  new QueryBuilder(datasource)
+    .from(person, father)
+    .where(eq(person.fatherId, father.id))
+    .select(person.name, father.name)
+    .find();
+\end{verbatim}
+
+\subsection{Control Flow and Reuse}
+
+\textbf{TODO:} Control flow discussion is missing, closures introduced out of the blue. 
+
+\textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
+
+The general closure can be used to alter tables and where conditions:
+
+\begin{verbatim}
+public interface Closure {
+  void apply(Builder builder);
+}
+\end{verbatim}
+
+Each select builder (with certain number of columns) has also a corresponding closure that is able to add and remove columns:
+
+\begin{verbatim}
+public class SelectBuilderC2<C1,C2> 
+  extends SelectBuilder {
+  ...
+  public SelectBuilderC2<C1,C2> 
+    closure(Closure closure) {
+
+    closure.apply(this);
+    return this;
+  }
+}
+\end{verbatim}
+
+The following example illustrates how to abstract adding a person's father name to the select.
+
+\begin{verbatim}
+final Person person = new Person("p");
+
+new QueryBuilder(datasource)
+  .from(person)
+  .select(person.name)
+  .closure(new ClosureC1<String>() {
+    public void apply(Builder builder) {
+      Person father = new Person("f");
+      builder
+        .addTables(father)
+        .addColumn(father.name)
+        .addConditions(
+          eq(person.fatherId, father.id));
+    }
+  });
+\end{verbatim}
+
+Here we use a closure to add another table, column and where condition to the select. Since we change the number of columns we have to either get the results from the builder in our closure or pass it to another one. Here we refer another closure that gets the results and prints them out.
+
+\subsection{The Rest Of SQL}
+
+\textbf{TODO:} Discuss briefly ORDER BY, GROUP BY, extensions (RDBMS-specific), untyped expression, functions and procedures and others. Reader must understand that implementing full SQL is only a matter of time. Don't go into too much detail.
+
+\section{Typed Bytecode Engineering}
+
+\section{Patterns and Discussion}
+
+\section{Type Safety Limitations}
+
+\section{Acknowledgements}
+
+\section{Conclusions}
+
+\bibliographystyle{abbrv}
+\bibliography{aranea}
+
+\end{document}

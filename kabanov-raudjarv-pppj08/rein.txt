@@ -1,0 +1,343 @@
+
+- Typed SQL (by example, incremental)
+  - Dictionary
+  - Staged builders
+  - Tuples
+  - Functions and Aggregates
+  - Aliases
+  - Closures?
+
+
+Typed SQL
+---------
+
+
+* Introduction
+
+In Java executing SQL is untyped. Therefore most of the errors occur at runtime.
+
+Consider the following simple case about fetching some data for each person.
+
+	ResultSet rs = SqlUtil.executeQuery("SELECT name, height, birthday FROM person");
+	while (rs.next()) {
+		String name = rs.getString("name");
+		Integer height = rs.getInt("height");
+		Date birthday = rs.getDate("birthday");
+		System.out.println(name + " " + height + " " + birthday);
+	}
+
+Here we just execute an SQL statement and print the name, height and birthday of each row.
+
+The query is entered as String. So the programmer must assure that he/she uses valid SQL syntax and the database contains such table with these columns and data types.
+
+
+* Dictionary
+
+Data dictionary is a set of information about database describing tables and columns with their types. The purpose of dictionary is to provide this information for the programmer at compile time. So the IDE denies to misuse the data structures.
+
+In Java the dictionary of the table Person could be the following (The actual way how the dictionary is generated from the database is irrelevant.):
+
+	public interface Table {
+		String getName();		
+	}
+
+	public class Column<T extends Table, C> {
+
+		private T table;
+		private String name;
+		private Class<C> type;
+		
+		public Column1(T table, String name, Class<C> type) {
+			this.table = table;
+			this.name = name;
+			this.type = type;
+		}
+		
+		public T getTable() { return table; }
+		public String getName() { return name; }
+		public Class<C> getType() { return type; }
+		
+	}
+
+	public class Person implements Table {
+
+		public String getName() { return "person"; };
+		
+		public static final Person TABLE = new Person();
+
+		public static final Column<Person, String> NAME = new Column<Person, String>(TABLE, "name", String.class);
+		public static final Column<Person, Integer> HEIGHT = new Column<Person, Integer>(TABLE, "height", Integer.class);
+		public static final Column<Person, Date> BIRTHDAY = new Column<Person, Date>(TABLE, "birthday", Date.class);
+
+	}
+
+The table stores just its name. Each column has its name, type and the table instance. We also carry the table and column type as Java generic arguments to enable compile time type checks.
+
+
+* Staged builders
+
+The main advantage that known column types provide is retrieving the results with the right type. To achieve this goal we cannot use queries as Strings. Instead the corresponding query must be constructed using an API that uses the selected column types to return the results type safe. Recalling our first example the following builder API could be used for example:
+
+	List<Tuple3<String, Integer, Date>> persons = new QueryBuilder(datasource)
+		.from(Person.TABLE)
+		.select(Person.NAME, Person.HEIGHT, Person.BIRTHDAY)
+		.find();
+	for (Tuple3<String, Integer, Date> person : persons) {
+		String name = person.get1();
+		Integer height = person.get2();
+		Date birthday = person.get3();
+		System.out.println(name + " " + height + " " + birthday);
+	}
+
+Here:
+new QueryBuilder() - just stores the datasource
+
+	public class QueryBuilder {
+		...
+		public <T extends Table> FromBuilder<T> from(T table) { .. }
+	}
+
+QueryBuilder.from() - returns the FromBuilder that stores the table from the dictionary
+
+	public class FromBuilder<T extends Table> extends QueryBuilder {
+		...
+		public <C1> SelectBuilder1<T, C1> select(Column<T, C1> c1) { ... }
+		public <C1, C2> SelectBuilder2<T, C1, C2> select(Column<T, C1> c1, Column<T, C2> c2) { ... }
+		public <C1, C2, C3> SelectBuilder3<T, C1, C2, C3> select(Column<T, C1> c1, Column<T, C2> c2, Column<T, C3> c3) { ... }
+		...
+	}
+
+FromBuilder.select() - returns SelectBuilder3 that stores three columns from the table, we only allow to select columns from the specified table (therefore we had do use From before the Select).
+
+	public class SelectBuilder3<T extends Table,C1,C2,C3> extends FromBuilder<T> {
+		...
+		public List<Tuple3<C1,C2,C3>> find() { ... }
+	} 
+
+SelectBuilder3.find() - constructs the SQL query, executes it and reads the results
+
+Because the selected columns have generic types that carry along the builder methods we finally get the results with the desired type. Here Tuple3 is just a triple with specified types.
+
+Restriction: Notice that this is just a simple builder for one table. We carry the type of the table in generic argument and the select method only permits the columns with the same table argument. If there are more than one table we cannot define a Java method that takes a column of one of the tables (table 1 or table 2). Therefore we would have to provide a different method for each table (select1, select2 etc). That would be awkward. So the API would be much simpler to use if the tables of the columns were not checked. Hereafter we leave out this check.
+
+
+* Tuples
+
+Tuples are sequence of values where each component of a tuple is a value of specified type. Often used in functional languages they are not natively supported in Java. All the same the corresponding classes can be easily generated. For example a tuple with the length of two is following:
+
+	public class Tuple2<T1, T2> implements Tuple {
+		public final T1 v1;
+		public final T2 v2;
+
+		public Tuple2(T1 v1, T2 v2) {
+			this.v1 = v1;
+			this.v2 = v2;
+		}		
+
+		public T1 v1() { return v1; }
+		public T2 v2() { return v2; }
+	}
+
+We use tuples to return the query results with the right types. Instead of Tuple1 we can just use the corresponding type.
+
+
+* Functions and Aggregates
+
+We also want to use where clauses.
+
+A general fraction of SQL can be expressed as following:
+
+	public interface Expression<E> {
+		public String getSqlString();
+		public List<Object> getSqlArguments();
+		public Class<E> getType();		
+	}
+
+In where clause we only permit to use Expression<Boolean> objects such as "Like", "<", "=" etc. The operands of these expressions can already be arbitrary. To create these expressions we could use the following API:
+
+	public class ExpressionUtil {
+		public static <E> Expression<E> constant(E value) { ... }
+		public static <E> Expression<Boolean> eq(Expression<E> e1, Expression<E> e2) { ... }
+		public static <E> Expression<Boolean> gt(Expression<E> e1, Expression<E> e2) { ... }
+		public static <E> Expression<Boolean> lt(Expression<E> e1, Expression<E> e2) { ... }
+		public static <E> Expression<Boolean> like(Expression<E> e, Expression<String> pattern) { ... }
+		public static Expression<Boolean> not(Expression<Boolean> e) { ... }
+		public static Expression<Boolean> and(Expression<Boolean>... e) { ... }
+		public static Expression<Boolean> or(Expression<Boolean>... e) { ... }
+	}
+
+We are still missing the table columns here. Basically any column is an expression with the same type:
+
+	public class Column<T extends Table, C> implements Expression<C> {
+		...
+		public Class<C> getType() { return type; }
+		public String getSqlString() { return name; }
+		public List<Object> getSqlArguments() { return null; }		
+	}
+
+For example the restriction "WHERE name = 'Peter' or height > 170" looks the following now:
+
+	List<Tuple3<String, Integer, Date>> persons = new QueryBuilder(datasource)
+		.from(Person.TABLE)
+		.where(or(
+				eq(Person.NAME, constant("Peter")),
+				gt(Person.HEIGHT, constant(170)))
+			)
+		.select(Person.NAME, Person.HEIGHT, Person.BIRTHDAY)
+		.find();
+
+Altough we omitted the table check restriction we use Select as last to simplify our API. We used Java 5 import static for the ExpressionUtil methods.
+
+	public FromBuilder<T> where(Expression<Boolean> where) { ... }
+
+Here where() method just takes an expression of type boolean.
+
+Restriction: Java arrays can be of generic type (e.g. T[] array) but they do not allow generic arguments in their type (e.g Expression<Boolean>[] e = new Expression<Boolean>[0] causes a compiler error). However using such varargs implicitly creates this kind of array (Expression<Boolean> or(Expression<Boolean>... e)). This results in a compiler warning "Type safety: A generic array of Expression<Boolean> is created for a varargs paramater" where such method is called. Read more at http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6227971 
+
+As a solution we can create another interface:
+
+	public interface BooleanExpression extends Expression<Boolean> {}
+
+and replace the Expression<Boolean> with BooleanExpression in our ExpressionUtil class.
+
+
+
+So far we have only allowed to select columns from the table. In general we want to select an arbitrary expression (such as "name || ', ' || birthday"). Therefore the FromBuilder class should just accept Expressions instead of Columns (we already determined to omit the table check):
+
+	public class FromBuilder extends QueryBuilder {
+		...
+		public <C1> SelectBuilder1<C1> select(Expression<C1> c1) { ... }
+		public <C1, C2> SelectBuilder2<C1, C2> select(Expression<C1> c1, Expression<C2> c2) { ... }
+		public <C1, C2, C3> SelectBuilder3<C1, C2, C3> select(Expression<C1> c1, Expression<C2> c2, Expression<C3> c3) { ... }
+		...
+	}
+
+
+
+* Aliases
+
+If we want to select data from more than one table (or use one table twice or more times) we have to accept a list of tables and enable to use aliases for them. Also we have to refer same columns of the different table instances.
+
+Person table in Our dictionary had one instance per table and each column. Now we just have to create a table instance for each new alias and columns have to be attached to the speciifc table instance:
+
+	public interface Table {
+		String getName();
+		String getAlias();
+	}
+
+	public class Person implements Table {
+		private final String alias;
+		public Person(String alias) { this.alias = alias; }
+		
+		public String getName() { return "person"; };
+		public String getAlias() { return alias; }
+		
+		public static final Person TABLE = new Person(null);
+
+		public final Column<Integer> id = new Column<Integer>(this, "id", Integer.class);
+		public final Column<String> name = new Column<String>(this, "name", String.class);
+		public final Column<Integer> fatherId = new Column<Integer>(this, "father_id", Integer.class);
+	}
+
+Each table instance can now have a different alias (the default TABLE instance is for simple select) and the columns are now instance fields of the table (not static).
+
+We changed the fields to use the table twice in the select. If we want to show each person's name and his/her father name it would look like the following:
+
+	Person person = new Person("p"), father = new Person("f");
+	
+	List<Tuple2<String, String>> names = new QueryBuilder(datasource)
+		.from(person, father)
+		.where(eq(person.fatherId, father.id))
+		.select(person.name, father.name)
+		.find();
+	for (Tuple2<String, String> tuple2 : names) {
+		String name = tuple2.get1();
+		String fatherName = tuple2.get2();
+		System.out.println(name + " " + fatherName);
+	}
+
+Here we make two instances of the Person table which have different aliases "p" and "f". We select "p.name, f.name" columns, use both tables in the From clause and make a join "p.fatherId = f.id".
+
+
+
+To also use aliases for columns or expressions in the select we need an expression wrapper that adds the alias.
+
+	public interface AliasExpression<E> extends Expression<E> {
+		Expression<E> getExpression();
+		String getAlias();
+	}
+
+	public class ExpressionUtil {
+		...
+		public static <E> AliasExpression<E> alias(Expression<E> e, String alias) { ... }
+	}
+
+AliasExpression just adds the appropriate suffix to the original SQL string. If we want to use the same expression in the Select and Where clauses getExpression() could be used by the builder to omit the alias in the where clause. Similarly getAlias() could be used for the Orderby clause.
+
+
+* Closures / Control flow and reuse 
+
+We introduce two types of closures according to whether they infect the columns or not.
+
+The general closure can be used to alter tables and where conditions:
+
+	public interface Closure {
+		void apply(BaseBuilder builder);
+	}
+
+Each select builder (with certain number of columns) has also a corresponding closure that is able to add and remove columns:
+
+	public class SelectBuilderC2<C1,C2> extends SelectBuilder {
+		...
+		public SelectBuilderC2<C1,C2> closure(Closure closure) {
+			closure.apply(this);
+			return this;
+		}
+		public void closure(ClosureC2<C1,C2> closure) {
+			closure.apply(this);
+		}
+		public static interface ClosureC2<C1,C2> {
+			void apply(SelectBuilderC2<C1,C2> builder);
+		}
+	}
+
+Since the general closure cannot change the column count the corresponding method returns the same builder. At the same ClosureC2<C1,C2> has an undetermined column count remaining. Therefore the builder's method is of void type.
+
+
+
+So if we want to find persons by their name (and all persons if the name is null) we can use the following syntax:
+
+	List<Tuple2<Integer, String>> rows = new QueryBuilder(datasource)
+		.from(person)
+		.closure(new Closure() {
+			public void apply(BaseBuilder builder) {
+				if (searchName != null) {
+					builder.addConditions(eq(person.name, constant(searchName)));
+				}
+			}
+		})
+		.select(person.id, person.name)
+		.find();
+
+Here we used a closure to alter the where clause if a certain condition is true. Since we were unable to alter selected columns the builder syntax continues as usual.
+
+
+
+The following example illustrates how to abstract adding a person's father name to the select.
+
+	final Person person = new Person("p");
+	new QueryBuilder(datasource)
+		.from(person)
+		.select(person.name)
+		.closure(new ClosureC1<String>() {
+			public void apply(SelectBuilderC1<String> builder) {
+				Person father = new Person("f");
+				builder
+					.addTables(father)
+					.addColumn(father.name)
+					.addConditions(eq(person.fatherId, father.id))
+					.closure(printClosure);
+			}
+		});
+
+Here we use a closure to add another table, column and where condition to the select. Since we change the number of columns we have to either get the results from the builder in our closure or pass it to another one. Here we refer another closure that gets the results and prints them out.

@@ -1,0 +1,52 @@
+Embedded Typesafe DSLs for Java
+
+Deadlines: 
+ - Rein
+
+With projects like jMock and Hibernate Criteria Query embedded DSLs have been introduced into Java. We describe two case studies that develop embedded typesafe DSLs for building SQL queries and engineering Java bytecode. We proceed to extract several patterns useful for developing a typesafe DSL for arbitrary domains. We also show the limits of type safety that can be achieved in Java. Both projects developed for the case study are available as open source.
+
+- Introduction
+- Typed SQL (by example, incremental)
+  - Dictionary
+  - Staged builders
+  - Tuples
+  - Functions and Aggregates
+  - Aliases
+  - Closures?
+- Typed Bytecode (by example, incremental)
+  - Like dow.ngra.de?
+- Patterns and Discussion
+  - Patterns
+    - Variable metadata
+    - Restricted access (only allowed methods available)
+      - From/Where/...
+      - Stack depth
+    - Accumulated types (generic table stack)
+      - Tables
+      - Tuples
+      - Stack
+      - Vars
+    - Unsafe escape & assumptions
+      - Arb. SQL
+      - String types
+    - Type dictionary
+      - SQL only
+    - Productivity & performance
+      - ASM only
+    - Local variables for typed aliasing
+      - Both? Better name?
+    - Closures
+      - Control flow
+    - Generator
+      - Type dictionary
+      - depth and varnum
+  - Discussion
+    - Static import v/s .dsl()
+    - DSL as a frontend
+    - DSL for your domain
+- Java limitations
+  - and how Scala solves them?
+- Acknowledgements
+  - Juhan
+  - Grant
+- Conclusions

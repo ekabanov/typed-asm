@@ -310,23 +310,32 @@ public class FromBuilder extends QueryBuilder {
 
 \subsection{Aliases}
 
-\textbf{TODO:} Table aliases are simple and boring. I wanted here described the expression aliases that can be used to introduce expressions into both select and where clauses. E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_name != "Jevgeni Kabanov"''. This would look like 
+If we want to use the same expression both in the select and where clauses. We could use an alias expression:
+
 \begin{verbatim}
-  Person p = new Person();
-  Alias<String> fullName = 
-    concat(p.firstName, " ", p.last_name);
-  new QueryBuilder(datasource)
-    .from(p)
-    .where(not(eq(fullName, "Jevgeni Kabanov")))
-    .select(fullName);
+public interface Alias<E> extends Expression<E> {
+  Expression<E> getExpression();
+  String getName();
+}
 \end{verbatim}
 
-\textbf{TODO:} Everything else concerning tables in this section was obvious, this example is enough:
+E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_name != "Jevgeni Kabanov"''. This would look like
+
+\begin{verbatim}
+  PersonFL p = new PersonFL(null);
+  Alias<String> fullName = alias(concat(p.firstName, " ", p.lastName), "full_name");
+  List<String> names = new QueryBuilder(datasource)
+    .from(p)
+    .where(not(eq(fullName, "Jevgeni Kabanov")))
+    .select(fullName)
+    .find();
+\end{verbatim}
+
+To use one table twice in the select one could just create seperate instances of the table:
 
 \begin{verbatim}
 Person person = new Person();
 Person father = new Person();
-
 List<Tuple2<String, String>> names = 
   new QueryBuilder(datasource)
     .from(person, father)

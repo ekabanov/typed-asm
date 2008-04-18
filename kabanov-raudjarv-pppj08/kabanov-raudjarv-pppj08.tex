@@ -346,9 +346,10 @@ List<Tuple2<String, String>> names =
 
 \subsection{Control Flow and Reuse}
 
-\textbf{TODO:} Control flow discussion is missing, closures introduced out of the blue. 
-
-\textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
+If we want to construct the query depending on some conditions we have to pass the builder object through the control flow.
+Since each builder method returns a different type holding the object as a variable is clumsy. Also different types complicates to re-use the code.
+To solve this we encourage to use closures for the control flow.
+We introduce two types of closures - general closures and closures for columns. 
 
 The general closure can be used to alter tables and where conditions:
 
@@ -394,6 +395,8 @@ new QueryBuilder(datasource)
 \end{verbatim}
 
 Here we use a closure to add another table, column and where condition to the select. Since we change the number of columns we have to either get the results from the builder in our closure or pass it to another one. Here we refer another closure that gets the results and prints them out.
+
+\textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
 
 \subsection{The Rest Of SQL}
 

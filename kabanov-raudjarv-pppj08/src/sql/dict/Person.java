@@ -4,6 +4,7 @@ package sql.dict;
 public class Person implements Table {
 	private final String alias;
 	public Person(String alias) { this.alias = alias; }
+	public Person() { this.alias = null; }
 	
 	public String getName() { return "person"; };
 	public String getAlias() { return alias; }

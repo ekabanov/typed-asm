@@ -6,7 +6,7 @@ import java.util.List;
 import javax.sql.DataSource;
 import sql.builder.QueryBuilder;
 import sql.dict.Person;
-import sql.expr.AliasExpression;
+import sql.expr.Alias;
 import sql.tuple.Tuple2;
 
 public class Example9 {
@@ -16,7 +16,7 @@ public class Example9 {
 		DataSource datasource = null;
 		
 		Person person = Person.TABLE;
-		AliasExpression<String> title = alias(concat(person.name, person.id), "title");
+		Alias<String> title = alias(concat(person.name, person.id), "title");
 		
 		List<Tuple2<String, String>> names = new QueryBuilder(datasource)
 			.from(person)

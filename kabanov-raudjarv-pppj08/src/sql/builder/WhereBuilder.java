@@ -2,9 +2,9 @@ package sql.builder;
 
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
-import sql.expr.OrderByExpression;
+import sql.expr.NamedExpression;
 
-public class WhereBuilder extends OrderByBuilder {
+public class WhereBuilder extends GroupByBuilder {
 
 	public WhereBuilder(BaseBuilder builder) {
 		super(builder);
@@ -30,11 +30,12 @@ public class WhereBuilder extends OrderByBuilder {
 		return removeConditions(conditions);
 	}
 	
-	// Order By
+	// Group by
 	
-	public OrderByBuilder orderBy(OrderByExpression... orders) {
-		// TODO
-		return new OrderByBuilder(this);
+	@SuppressWarnings("unchecked")
+	public GroupByBuilder groupBy(NamedExpression columns) {
+		addGroups(columns);
+		return new GroupByBuilder(this);
 	}
 	
 	// Closure

@@ -34,6 +34,16 @@ public class OrderByBuilder extends BaseBuilder {
 		return removeConditions(conditions);
 	}
 	
+	// Having
+	
+	public OrderByBuilder addHavingConditions(BooleanExpression... conditions) {
+		return (OrderByBuilder) super.addHavingConditions(conditions);
+	}
+	
+	public OrderByBuilder removeHavingConditions(BooleanExpression... conditions) {
+		return (OrderByBuilder) super.removeHavingConditions(conditions);
+	}	
+	
 	// Order by
 	
 	public OrderByBuilder addDirections(OrderByExpression... directions) {

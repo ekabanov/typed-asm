@@ -400,6 +400,40 @@ Here we use a closure to add another table, column and where condition to the se
 
 \subsection{The Rest Of SQL}
 
+Other SQL features such as Order by, Group by, Having can also be implemented similarly:
+
+\begin{verbatim}
+  Person p = new Person();
+  Alias<Integer> count = alias(count(p.id));
+  List<Tuple2<Integer, Integer>> rows
+      = new QueryBuilder(datasource)
+    .from(p)
+    .where(not(eq(p.name, constant("Peter"))))
+    .groupBy(p.fatherId)
+    .having(gt(count, constant(3)))
+    .orderBy(desc(count))
+    .select(p.fatherId, count)
+    .find();
+\end{verbatim}
+
+So implementing the full SQL is only a matter of time.
+
+For a native SQL fragment one can include an untyped expression.
+It takes the corresponding type for the builder explicitly:
+
+\begin{verbatim}
+  Person p = new Person();
+  List<Tuple2<String, Integer>> rows
+      = new QueryBuilder(datasource)
+    .from(p)
+    .select(p.name,
+        unchecked(Integer.class,
+            "util.count_children(id)"))
+    .find();
+\end{verbatim}
+
+In this case we could cover the stored functions and procedures in the dictionary also.
+
 \textbf{TODO:} Discuss briefly ORDER BY, GROUP BY, extensions (RDBMS-specific), untyped expression, functions and procedures and others. Reader must understand that implementing full SQL is only a matter of time. Don't go into too much detail.
 
 \section{Typed Bytecode Engineering}

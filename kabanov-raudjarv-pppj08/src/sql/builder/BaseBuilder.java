@@ -3,6 +3,7 @@ package sql.builder;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import sql.api.QueryHandler;
@@ -11,6 +12,7 @@ import sql.api.StatementCallback;
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
 import sql.expr.Expression;
+import sql.expr.NamedExpression;
 import sql.expr.OrderByExpression;
 
 /**
@@ -39,7 +41,13 @@ public class BaseBuilder {
 	// From
 	private List<Table> 				tables;
 	// Where
-	private List<BooleanExpression> 	conditions;	
+	private List<BooleanExpression> 	conditions;
+	
+	// Group by
+	private List<NamedExpression<?>>	groups;
+	// Having
+	private List<BooleanExpression> 	havingConditions;
+	
 	// Order by
 	private List<OrderByExpression> 	directions;	
 	
@@ -149,6 +157,56 @@ public class BaseBuilder {
 	
 	public BaseBuilder removeConditions(BooleanExpression... conditions) {
 		this.conditions.removeAll(Arrays.asList(conditions));
+		return this;
+	}
+	
+	// Group by
+	
+	public List<NamedExpression<?>> getGroups() {
+		return new ArrayList<NamedExpression<?>>(groups);
+	}
+	
+	protected List<NamedExpression<?>> _getGroups() {
+		return groups;
+	}
+	
+	protected void _setGroups(List<NamedExpression<?>> groups) {
+		this.groups = groups;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public BaseBuilder addGroups(NamedExpression... groups) {
+		this.groups.addAll((Collection<? extends NamedExpression<?>>) Arrays.asList(groups));
+		return this;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public BaseBuilder removeGroups(NamedExpression... groups) {
+		this.groups.removeAll(Arrays.asList(groups));
+		return this;
+	}
+	
+	// Having
+	
+	public List<BooleanExpression> getHavingConditions() {
+		return new ArrayList<BooleanExpression>(havingConditions);
+	}
+	
+	protected List<BooleanExpression> _getHavingConditions() {
+		return havingConditions;
+	}
+	
+	protected void _setHavingConditions(List<BooleanExpression> havingConditions) {
+		this.havingConditions = havingConditions;
+	}
+	
+	public BaseBuilder addHavingConditions(BooleanExpression... havingConditions) {
+		this.havingConditions.addAll(Arrays.asList(havingConditions));
+		return this;
+	}
+	
+	public BaseBuilder removeHavingConditions(BooleanExpression... havingConditions) {
+		this.havingConditions.removeAll(Arrays.asList(havingConditions));
 		return this;
 	}
 	

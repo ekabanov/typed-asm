@@ -1,6 +1,6 @@
 package sql.expr;
 
-public interface AliasExpression<E> extends NamedExpression<E> {
+public interface Alias<E> extends NamedExpression<E> {
 	Expression<E> getExpression();
 	String getName();
 }

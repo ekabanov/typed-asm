@@ -38,31 +38,31 @@ public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
 	
 	@SuppressWarnings("unchecked")
 	public Expression<C1> getColumn1() {
-		return (Expression<C1>) _getColumns().get(0);
+		return (Expression<C1>) _getColumnFromEnd(2);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Expression<C2> getColumn2() {
-		return (Expression<C2>) _getColumns().get(1);
+		return (Expression<C2>) _getColumnFromEnd(1);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Expression<C3> getColumn3() {
-		return (Expression<C3>) _getColumns().get(1);
+		return (Expression<C3>) _getColumnFromEnd(0);
 	}
 	
 	public SelectBuilderC2<C2,C3> removeColumn1() {
-		_getColumns().remove(0);
+		_removeColumnFromEnd(2);
 		return new SelectBuilderC2<C2,C3>(this);
 	}
 	
 	public SelectBuilderC2<C1,C3> removeColumn2() {
-		_getColumns().remove(1);
+		_removeColumnFromEnd(1);
 		return new SelectBuilderC2<C1,C3>(this);
 	}
 	
 	public SelectBuilderC2<C1,C2> removeColumn3() {
-		_getColumns().remove(2);
+		_removeColumnFromEnd(0);
 		return new SelectBuilderC2<C1,C2>(this);
 	}
 	
@@ -83,7 +83,7 @@ public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
 	// Closure
 	
 	public SelectBuilderC3<C1,C2,C3> closure(Closure closure) {
-		closure.apply(this);
+		super.closure(closure);
 		return this;
 	}
 	

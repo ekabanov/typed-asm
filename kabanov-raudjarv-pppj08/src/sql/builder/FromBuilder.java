@@ -12,21 +12,21 @@ public class FromBuilder extends WhereBuilder {
 	// From
 	
 	public FromBuilder addTables(Table... tables) {
-		return addTables(tables);
+		return (FromBuilder) super.addTables(tables);
 	}
 
 	public FromBuilder removeTables(Table... tables) {
-		return removeTables(tables);
+		return (FromBuilder) super.removeTables(tables);
 	}
 	
 	// Where
 	
 	public FromBuilder addConditions(BooleanExpression... conditions) {
-		return addConditions(conditions);
+		return (FromBuilder) super.addConditions(conditions);
 	}
 	
 	public FromBuilder removeConditions(BooleanExpression... conditions) {
-		return removeConditions(conditions);
+		return (FromBuilder) super.removeConditions(conditions);
 	}
 	
 	public WhereBuilder where(BooleanExpression conditions) {

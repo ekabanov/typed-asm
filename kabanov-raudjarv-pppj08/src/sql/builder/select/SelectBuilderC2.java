@@ -3,6 +3,7 @@ package sql.builder.select;
 import java.util.List;
 import sql.builder.BaseBuilder;
 import sql.builder.Closure;
+import sql.builder.transform.ColumnAppenderC1;
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
 import sql.expr.Expression;
@@ -38,12 +39,12 @@ public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 	
 	@SuppressWarnings("unchecked")
 	public Expression<C1> getColumn1() {
-		return (Expression<C1>) _getColumns().get(0);
+		return (Expression<C1>) _getColumnFromEnd(1);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Expression<C2> getColumn2() {
-		return (Expression<C2>) _getColumns().get(1);
+		return (Expression<C2>) _getColumnFromEnd(0);
 	}
 	
 	public <C3> SelectBuilderC3<C1,C2,C3> addColumn(Expression<C3> column) {
@@ -52,12 +53,12 @@ public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 	}
 	
 	public SelectBuilderC1<C2> removeColumn1() {
-		_getColumns().remove(0);
+		_removeColumnFromEnd(1);
 		return new SelectBuilderC1<C2>(this);
 	}
 	
 	public SelectBuilderC1<C1> removeColumn2() {
-		_getColumns().remove(1);
+		_removeColumnFromEnd(0);
 		return new SelectBuilderC1<C1>(this);
 	}
 	
@@ -78,7 +79,7 @@ public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 	// Closure
 	
 	public SelectBuilderC2<C1,C2> closure(Closure closure) {
-		closure.apply(this);
+		super.closure(closure);
 		return this;
 	}
 	
@@ -88,6 +89,12 @@ public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 	
 	public static interface ClosureC2<C1,C2> {
 		void apply(SelectBuilderC2<C1,C2> builder);
+	}
+	
+	// Appender
+	
+	public <C3> SelectBuilderC3<C1,C2,C3> appender(ColumnAppenderC1<C3> appender) {
+		return new SelectBuilderC3<C1,C2,C3>(appender.append(new SelectBuilderC0(this)));
 	}
 
 }

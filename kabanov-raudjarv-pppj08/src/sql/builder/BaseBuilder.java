@@ -11,6 +11,7 @@ import sql.api.StatementCallback;
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
 import sql.expr.Expression;
+import sql.expr.OrderByExpression;
 
 /**
  * SQL Select builder implementation.
@@ -39,6 +40,8 @@ public class BaseBuilder {
 	private List<Table> 				tables;
 	// Where
 	private List<BooleanExpression> 	conditions;	
+	// Order by
+	private List<OrderByExpression> 	directions;	
 	
 
 	public BaseBuilder() {
@@ -73,6 +76,18 @@ public class BaseBuilder {
 	
 	protected List<Expression<?>> _getColumns() {
 		return columns;
+	}
+	
+	protected Expression<?> _getColumnFromEnd(int indexFromEnd) {
+		return columns.get(_getColumnIndexFromEnd(indexFromEnd));
+	}
+	
+	protected Expression<?> _removeColumnFromEnd(int indexFromEnd) {
+		return columns.remove(_getColumnIndexFromEnd(indexFromEnd));
+	}
+	
+	protected int _getColumnIndexFromEnd(int indexFromEnd) {
+		return columns.size() - 1 - indexFromEnd;
 	}
 	
 	protected void _setColumns(List<Expression<?>> columns) {
@@ -134,6 +149,37 @@ public class BaseBuilder {
 	
 	public BaseBuilder removeConditions(BooleanExpression... conditions) {
 		this.conditions.removeAll(Arrays.asList(conditions));
+		return this;
+	}
+	
+	// Order by
+	
+	public List<OrderByExpression> getDirections() {
+		return new ArrayList<OrderByExpression>(directions);
+	}
+	
+	protected List<OrderByExpression> _getDirections() {
+		return directions;
+	}
+	
+	protected void _setDirections(List<OrderByExpression> directions) {
+		this.directions = directions;
+	}
+	
+	public BaseBuilder addDirections(OrderByExpression... directions) {
+		this.directions.addAll(Arrays.asList(directions));
+		return this;
+	}
+	
+	public BaseBuilder removeDirections(OrderByExpression... directions) {
+		this.directions.removeAll(Arrays.asList(directions));
+		return this;
+	}
+	
+	// Closure
+	
+	public BaseBuilder closure(Closure closure) {
+		closure.apply(this);
 		return this;
 	}
 	

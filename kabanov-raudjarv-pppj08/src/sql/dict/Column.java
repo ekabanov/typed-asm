@@ -1,9 +1,9 @@
 package sql.dict;
 
 import java.util.List;
-import sql.expr.Expression;
+import sql.expr.NamedExpression;
 
-public class Column<E> implements Expression<E> {
+public class Column<E> implements NamedExpression<E> {
 
 	private Table table;
 	private String name;

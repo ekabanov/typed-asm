@@ -17,29 +17,23 @@ With projects like jMock and Hibernate Criteria Query embedded DSLs have been in
   - Like dow.ngra.de?
 - Patterns and Discussion
   - Patterns
-    - Variable metadata
-    - Restricted access (only allowed methods available)
+    - Typesafe Metadata
+      - Dictionary
+		- Variable metadata
+    - Unsafe escape & assumptions
+      - Arb. SQL
+      - String types
+    - Staging - Restricted access (only allowed methods available)
       - From/Where/...
       - Stack depth
-    - Accumulated types (generic table stack)
+    - Chaining v/s static import
+    - Tupling (generic table stack)
       - Tables
       - Tuples
       - Stack
       - Vars
-    - Unsafe escape & assumptions
-      - Arb. SQL
-      - String types
-    - Type dictionary
-      - SQL only
-    - Productivity & performance
-      - ASM only
-    - Local variables for typed aliasing
-      - Both? Better name?
     - Closures
       - Control flow
-    - Generator
-      - Type dictionary
-      - depth and varnum
   - Discussion
     - Static import v/s .dsl()
     - DSL as a frontend

@@ -47,9 +47,24 @@ With projects like jMock and Hibernate Criteria Query embedded DSLs have been in
 
 %\tableofcontents
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Domain specific language usually refers to a small sublanguage that has very little overhead when expressing domain specific data and behaviour. DSL is a broad term \cite{vandeursen2000dsl,bentley1999pp} and can refer both to a fully implemented language and a specialized API that looks like a sublanguage \cite{hudak1996}, but still written using some general-purpose language. Such DSLs in the latter meaning have been introduced by both the functional \cite{bringert2004sph} and dynamic languages community \cite{cuadrado2007bds}. Both these communities (and especially functional) took advantage of function composition and operator overloading to build combinator-based languages that look nothing like the original. The functional communities also strongly support the notion of type safety; therefore DSLs they create are usually statically typed.
+
+
+In Java the DSLs are also becoming more popular. The first examples like jMock \cite{freeman2004jsr} and Hibernate Criteria \cite{bauer2005ha} were coined as Fluent Interface. However most of these DSLs are not typesafe and will allow wrong statements to be compiled. In this paper we introduce some patterns that help making Java DSLs safer.
+
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Typesafe SQL}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Let's start with a very simple example of an SQL query in Java. 
 \begin{verbatim}
@@ -83,8 +98,8 @@ Person p = new Person();
 List<Tuple3<String, Integer, Date>> persons = 
   new QueryBuilder(datasource)
   .from(p)
-  .select(p.name, p.height, p.birthday)
   .where(gt(p.height, 170)
+  .select(p.name, p.height, p.birthday)
   .find();
 for (Tuple3<String, Integer, Date> person : persons) {
   String name = person.v1();
@@ -97,7 +112,9 @@ for (Tuple3<String, Integer, Date> person : persons) {
 
 Although this example does the same as the previous there is not a single string and any kind of misspelling or type inconsistency will show immediately as a compile-time error\footnote{Even more importantly with a sufficiently advanced IDE it will be marked as an error directly in the text of the program providing immediate feedback.}. In the following sections we explain how to achieve full type safety in this DSL.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Tuples}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 You may have already noticed that we make sure the result set types are not inconsistent by combining them into a class called \verb!Tuple3!.
 
@@ -120,7 +137,9 @@ public class Tuple2<T1, T2> implements Tuple {
 
 We use tuples to return the query results with the right types. Instead of \verb!Tuple1! we can just use the unboxed type.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Metadata Dictionary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The first step towards type safety of the query itself is ensuring that table and column names we use do in fact exist and are spelled correctly. To ensure that we use the database metadata about the tables and columns to generate a typesafe \emph{metadata dictionary}.
 
@@ -144,7 +163,9 @@ public class Person implements Table {
 
 This metadata dictionary for the \verb!Person! table associates the table with its name and columns. Each field is in turn associated with its name, type and owner table. The generic type variables in the column definition provide us with compile-time type information.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Builders}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 To make use of the metadata we need to build the query itself. We proceed by separating the query building into stages (\emph{from}, \emph{where}, \emph{select},~\ldots) and delegating a \emph{builder} for each of those stages. Thus we can make sure that the basic syntax of the query is always correct by making it impossible to write it wrongly without a compile-time error.
 
@@ -208,7 +229,9 @@ Note that since our builders carry the type of the table passed in \verb!from()!
 
 However this solution is hard to extend when there is more than one table in the \emph{from} clause. Although we could apply the same idiom and tuple all the builders over the \emph{from} table types, but it's hard to later use this types in the actual methods. The problem is that to check the type we need the programmer to explicitly set the index of the table type in the from clause (e.g. by writing \verb!select1()!, \verb!select2()!,~\ldots). Since this is uncomfortable and is influenced by changes in \emph{from} clause we decided to leave this check out altogether and the builders do not carry the table types at all.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Expressions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Now that we have the basic structure of the SQL queries set we need to encode arbitrary functions, aggregates and expressions. In a usual fluent interface they would be accessible using the same chained notation we used for building the query. However we chose instead to use static methods, imported to the local namespace using the \verb!import static! feature introduced in Java 5.
 
@@ -307,8 +330,8 @@ public class FromBuilder extends QueryBuilder {
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \subsection{Aliases}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 If we want to use the same expression both in the select and where clauses. We could use an alias expression:
 
@@ -344,7 +367,9 @@ List<Tuple2<String, String>> names =
     .find();
 \end{verbatim}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Control Flow and Reuse}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 If we want to construct the query depending on some conditions we have to pass the builder object through the control flow.
 Since each builder method returns a different type holding the object as a variable is clumsy. Also different types complicates to re-use the code.
@@ -398,7 +423,9 @@ Here we use a closure to add another table, column and where condition to the se
 
 \textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Rest Of SQL}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Other SQL features such as Order by, Group by, Having can also be implemented similarly:
 
@@ -436,17 +463,346 @@ In this case we could cover the stored functions and procedures in the dictionar
 
 \textbf{TODO:} Discuss briefly ORDER BY, GROUP BY, extensions (RDBMS-specific), untyped expression, functions and procedures and others. Reader must understand that implementing full SQL is only a matter of time. Don't go into too much detail.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Typed Bytecode Engineering}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Java bytecode is a relatively simple stack-based language. All the code is contained in methods, class structure is mostly preserved from source (fields and methods, both can be static, constructors and static initialisers are turned into special methods named \verb!<init>! and \verb!<clinit>! correspondingly). 
+
+Inside the methods we have the variables, referred by an index with $0$ being \emph{this}, 1 being the first parameter and so on. Local variable indexes start after parameters. We can \emph{load} and \emph{store} variables. Every method has its own  stack, where we can \emph{push}, \emph{pop} and \emph{duplicate} values. We have a number of basic operations on the stack (like \emph{add} and \emph{multiply}) as well as \emph{method invocation}. When invoking the methods parameters are gathered from the stack with last parameter being on top of the stack. Finally we have some flow control, namely conditional (and unconditional) \emph{jumps}. For more information see Java Virtual Machine Specification \cite{lindholm1999jvm}.
+
+One of the best libraries for working with Java bytecode is ASM \cite{bruneton2002acm}. It provides both a lightweight visitor-based interface and a more comfortable tree-based object-oriented interface. Unfortunately both of them (and especially visitor-based one) are completely untyped and the produced bytecode is only verified during runtime\footnote{Even that verification is quite unsatisfactory, since the JVM verifier will produce an error, but will not specify the exact place where it occurs.}.
+
+We are going to use this simple Java example in the rest of this section:
+
+\begin{verbatim}
+public class HelloWorld {
+  public static void main(String[] args) {
+    System.out.println("Hello, World!");
+  }
+}
+\end{verbatim}
+
+When we compile it and then dump the bytecode this example becomes a bit more complicated. The following code is dumped by running \verb!javap -c HelloWorld!:
+
+\begin{verbatim}
+public class HelloWorld {
+  public <init>()V
+    ALOAD 0
+    INVOKESPECIAL Object.<init>()V
+    RETURN
+  
+  public static main([LString;)V
+    GETSTATIC System.out : LPrintStream;
+    LDC "Hello, World!"
+    INVOKEVIRTUAL PrintStream.println(LString;)V
+    RETURN
+}
+\end{verbatim}
+
+As we can see the Java compiler has generated a default constructor for the class. Additionally all classes are referred by their full names\footnote{In this example and further we omit the package from the class name for brevity}. The instructions we see do the following:
+\begin{itemize}
+\item \verb!ALOAD! loads the local variables to the top of the stack, index $0$ is \emph{this}.
+\item \verb!INVOKESPECIAL! in this case invokes super method consuming an \verb!Object! from the stack.
+\item \verb!GETSTATIC! retrieves the value of the static fields and puts it on the stack (in this case a \verb!PrintStream!).
+\item \verb!LDC! pushes a constant value to the stack.
+\item \verb!INVOKEVIRTUAL! invokes a usual (virtual) method, consuming the parameters from the stack and pushing the result to the stack.
+\item \verb!RETURN! exits from the method
+\end{itemize}
+
+We are not going to examine ASM library in detail, suffice to say its API corresponds almost one-to-one to Java bytecode instructions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Typesafe DSL}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let's ignore the default constructor for a second and concentrate on the \verb!main()! method. The typesafe DSL that we propose would engineer this bytecode like this:
+
+\begin{verbatim}
+new ClassBuilder(
+  cw, V1_4, ACC_PUBLIC, "HelloWorld", "Object", null)    
+  .beginStaticMethod(
+    ACC_PUBLIC | ACC_STATIC, 
+    "main", void.class, String[].class)
+  .getStatic(System.class, "out", PrintStream.class)
+  .push("Hello, World!")
+  .invokeVirtualVoid(
+    INVOKEVIRTUAL, 
+    PrintStream.class, "println", String.class)
+  .returnVoid()
+  .endMethod();
+\end{verbatim}
+
+What do we mean under typesafe in this case? Well in addition to most parameters being passed as class literals and the instructions syntax being part of the API we also track stack and local variable types. For example if we exchange the \verb!push("Hello, World!")! to \verb!push(10)! the compiler will give the following error:
+
+\begin{verbatim}
+invokeVirtualVoid(..., Class<? super Integer>) 
+in MethodBuilderS2V1<PrintStream, Integer, String[]>
+is not applicable to (..., Class<String>)
+\end{verbatim}
+
+The error means that our DSL tracks the types of the stack slots and since the method expects a \verb!String! parameter or compatible and the stack contains an \verb!Integer! compiler produces an error. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tracking Stack and Local Variables}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To achieve type safety we need to track stack size and types. We wouldn't want to allow to \verb!pop()! off an empty stack. And we would want to ensure that when you invoke a method all the parameters are there. 
+
+Since there is a different set of operations allowed for different stack sizes it is natural to have a class for each stack size. We choose to name (and number them) \verb!MethodBuilderS0!, \verb!MethodBuilderS1!, \verb!MethodBuilderS2! and so on.Each of them has only the methods possible with the current stack size. Now the method for \verb!pop()! will not even show up in autocompletion if the stack is not large enough.
+
+We can apply the same idea to tracking variables, allowing to add only one variable at a time and providing methods \verb!loadVar*! and \verb!stroreVar*!. This way our class name becomes \verb!MethodBuilderS*V*! where $S$ stands for stack size and $V$ stands for variable count.
+
+Of course in addition to the sizes we also have to track the actual types. To do that each \verb!MethodBuilder! is parametrized by $N$ type variables where $N = S + V$. The \verb!MethodBuilderS2V1<PrintStream, Integer, String[]>! we saw previously in the compiler output means that two stack slots have types \verb!PrintStream! and \verb!Integer!, whereas the only local variable has type \verb!String[]!.
+
+To understand how the types are inferred let's see the implementation of \verb!push()! and \verb!pop()!:
+
+\begin{verbatim}
+public class MethodBuilderS2V1 <S0, S1, V0> {
+  public MethodBuilderS1V1<S0, V0> pop() {
+    ...
+    return 
+      new MethodBuilderS1V1<S0, V0>(cb, mv);
+  }
+
+  public <S> MethodBuilderS3V1<S0, S1, S, V0> 
+    push(S value) {
+    ...
+    return 
+      new MethodBuilderS3V1<S0, S1, S, V0>(cb, mv);
+  }
+\end{verbatim}
+
+The class in question, \verb!MethodBuilderS2V1! is parametrised by two stack types and one variable types. The method \verb!pop()! throws away the top stack type and returns an instance of \verb!MethodBuilderS1V1!. The method push on the other hand infers an addition type from the parameter passed to it and returns an instance of \verb!MethodBuilderS3V1! adding the inferred type to the top of the stack types.
+
+What does the \verb!invokeVirtualVoid()! look like? First of all, it needs to consume two stack variables, therefore we need at least \verb!MethodBuilderS2V*! class to call it. Therefore all classes with less stack variables will not have this method. Secondly we need to check that the types in the stack are fitting, but must allow some leniency due to subtyping:
+
+\begin{verbatim}
+public class MethodBuilderS2V1<S0, S1, V0> {
+  public MethodBuilderS0V1<V0> 
+    invokeVirtualVoid(
+      int kind, 
+      Class< ? super S0> owner, 
+      String name, 
+      Class< ? super S1> parameter1) {
+    ...    
+    return new MethodBuilderS0V1<V0>(cb, mv);
+  }
+}
+\end{verbatim}
+
+As you can see it indeed consumes two stack values returning \verb!MethodBuilderS0V1!. If our method would also return a result we would need to pass the result type as well, and return a class with stack depth only one less. The expression \verb!? super S0! means that we require the actual parameter type to be a superclass of the stack type, which provides the required leniency.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Unsafe Assumptions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+One of the problems with the DSL we proposed here is that it assumes all the types exist. However it is very often the case that some of the types (most prominently the class currently being created) do not. You can somewhat alleviate the problem by introducing a special placeholder \verb!Self! type and use it instead of the current class name, but it won't solve the problem of other classes still awaiting construction.
+
+A different (but connected) problem is that you are not always constructing the full method, instead you could be just creating a prelude for a particular method or replacing one instruction with a series of your own. To solve this we should allow escaping from the rigid typesafe world by having unsafe operations, which issue compiler warnings.
+
+This means that instead of missing \verb!pop()! from a type with no stack slots we should just deprecate it or otherwise issue a warning. This also means that we should have \verb!invoke*()! methods that take strings as parameter types, similarly deprecated.
+
+However, since we know it's not a perfect world we'd like to at least protect ourselves a bit better. Therefore we should allow users to document their assumptions.
+
+This means that when we need to write just a fragment of bytecode we want to document what stack values and variables will it need. For that we introduce methods \verb!assumePush()!/\verb!assumePop()! and \verb!assumeVar*()!, which do not push any values, but just add the corresponding type variables:
+
+\begin{verbatim}
+public class MethodBuilderS2V1<S0, S1, V0> {
+  public <S> MethodBuilderS3V1<S0, S1, S, V0> 
+      assumePush(Class<S> type) {
+    return 
+      new MethodBuilderS3V1<S0, S1, S, V0>(cb, mv);
+  }
+
+  public MethodBuilderS1V1<S0, V0> assumePop() {
+    return new MethodBuilderS1V1<S0, V0>(cb, mv);
+  }
+
+  public <V> MethodBuilderS2V2<S0, S1, V0, V> 
+      assumeVar1(Class<V> type) {
+    return 
+      new MethodBuilderS2V2<S0, S1, V0, V>(cb, mv);
+  }  
+}	
+\end{verbatim}
+
+Using them we can document our expectations and let the compiler validate them. The following is an example of how we can use the assumptions to document that we expect \verb!PrintStream! to be on stack and \verb!String[]! to be the variable $0$.
+
+\begin{verbatim}
+private static void 
+    genSayHello(MethodBuilderS0V0 mb) {
+  mb.assumeVar0(String[].class)
+  .assumePush(PrintStream.class)
+  .loadVar0(String[].class)
+  .push(0)
+  .arrayLoad(
+    String[].class, 
+    Integer.class,
+    String.class)
+  .invokeVirtualVoid(
+    INVOKEVIRTUAL, 
+    PrintStream.class, 
+    "println", 
+    String.class);
+}
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Control Flow and Reuse}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The next problem is how to mix the DSL with the general-purpose control flow and method calls. The problem here is that (although it is hidden from the user) we return a different type every time. Therefore if we add a conditional operation, we would need to save the type in a variable, which would be complicated, as it contains a lot of inferred types. It also wouldn't cope with changes, since the inferred types would change every time. 
+
+To solve this we introduce two types of closures -- the strongly typed and weakly typed. The weakly typed ones lose all accumulated type information and are meant first of all for reusable methods that expect a base type as the argument:
+
+\begin{verbatim}
+public interface Closure {
+  public void apply(MethodBuilderS0V0 mb);
+}
+\end{verbatim}
+
+The strongly typed closures are generated with the class and are meant for using in control flow. Notice that although the method parameter includes all of the type variables they are undefined and will not change with the stack:
+
+\begin{verbatim}
+public class MethodBuilderS2V1 <S0, S1, V0> {
+  public MethodBuilderS2V1<S0, S1, V0> 
+      closure(ClosureS2V1 closure) {
+    closure.apply(this);
+    return this;
+  }
+
+  public MethodBuilderS2V1<S0, S1, V0> 
+      closure(Closure closure) {
+    closure.apply(new MethodBuilderS0V0(cb, mv));
+    return this;
+  }
+
+  interface ClosureS2V1 {
+    <S0, S1, V0> void 
+      apply(MethodBuilderS2V1<S0, S1, V0> mb);
+  }
+}
+\end{verbatim}
+
+We illustrate  the weakly typed closures by calling the method \verb!genSayHello()! introduced previously:
+
+\begin{verbatim}
+.beginStaticMethod(
+  ACC_PUBLIC | ACC_STATIC, 
+  "main", void.class, String[].class)
+.getStatic(System.class, "out", PrintStream.class)
+.closure(new Closure() {
+  public void apply(MethodBuilderS0V0 mb) {
+    genSayHello(mb);
+  }
+})
+.returnVoid()
+.endMethod();
+\end{verbatim}
+
+Of course with the introduction of actual closures in Java 7 this would look much shorter.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Patterns and Discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Let us now take a step back and look at the patterns showing up in the design of the two DSLs we have introduced. We will try to formulate a one-sentence summary for each of the patterns that we have identified and then follow it with examples and informal discussion. Although we could have put them down in a more formal way as in Design Patterns \cite{gamma1995dpe}, we find that the issues are too broad and the DSL design too much of an art to assume such formality.
+
+Note that as previously in text we refer to the classes that implement the DSL API as \emph{builders}. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Type Shaping}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{quote}
+\emph{All of the relevant information about the current building state should be encoded in the builder type and the builder should have precisely the methods allowed in that state.}
+\end{quote}
+
+We saw several examples of this pattern at work
+\begin{itemize}
+\item SQL query builders allowed \emph{from}, \emph{where} and \emph{select} to be called once and only once.
+\item Select builders types encode information about selected columns. 
+\item Select builders return only tuples that have precisely the selected data with types known ahead.
+\item Bytecode builders encode information about stack slot and local variable types.
+\item Bytecode builders hide methods that consume more stack slots than is available.
+\item Bytecode builder methods that consume stack slots must consume types fitting to the ones currently on stack.
+\end{itemize}
+
+This pattern is the basis of a properly designed typesafe DSL as instead of disallowing wrong behaviour we only allow \emph{precisely} right behaviour to begin with. 
+
+In both our examples the builder types encoded a list of types, which made it necessary to declare types with same (or similar) methods but different number of encoded types. We conjecture that it is a common enough pattern if you are encoding a complex enough DSL. However there are some ways around it, which we will review shortly.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Typesafe Metadata}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{quote}
+\emph{All of the metadata used by your DSL should include compile-time type information.}
+\end{quote}
+
+Both our DSLs made use of typesafe metadata, some of those uses were less obvious than others:
+\begin{itemize}
+\item SQL made use of pregenerated metadata dictionary that contained type information about database objects including tables and columns.
+\item The SQL expressions and named aliases provided information about the type of expression. This metadata was accessible via the local variable that the expression was saved to.
+\item The SQL \verb!SelectBuilder! encoded metadata about its column types, which would be important if we wanted to use it as a subquery again saved in a variable.
+\item The bytecode DSL used class literals, which are typesafe metadata embedded in Java language.
+\item We could have required each bytecode DSL local variable to be declared separately as a \verb!Variable<T>! class that would encode the type of the actual variable and could be saved locally.
+\end{itemize}
+
+As you can see the metadata needs to be typesafe, but it can still be come from a runtime expression saved to a local variable. This allows a lot of flexibility beyond the predefined dictionary-style metadata.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Unsafe Assumptions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{quote}
+\emph{Allow the user to do type unsafe actions, but make sure he has to document his assumptions.}
+\end{quote}
+
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Call Chaining and Static Imports}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Closures}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Type Safety Limitations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgements}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\textbf{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{TODO}
 
 \bibliographystyle{abbrv}
-\bibliography{aranea}
+\bibliography{kabanov-raudjarv-pppj08}
 
 \end{document}

@@ -112,6 +112,8 @@ for (Tuple3<String, Integer, Date> row : rows) {
 
 Although this example does the same as the previous there is not a single string and any kind of misspelling or type inconsistency will show immediately as a compile-time error\footnote{Even more importantly with a sufficiently advanced IDE it will be marked as an error directly in the text of the program providing immediate feedback.}. In the following sections we explain how to achieve full type safety in this DSL.
 
+\textbf{TODO} Compiler errors
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Tuples}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -161,7 +163,10 @@ public class Person implements Table {
 }
 \end{verbatim}
 
-This metadata dictionary for the \verb!Person! table associates the table with its name and columns. Each field is in turn associated with its name, type and owner table. The generic type variables in the column definition provide us with compile-time type information.
+This metadata dictionary for the \verb!Person! table associates the table with
+its name and columns. Each column is in turn associated with its name, type and
+owner table. The generic type variables in the column definition provide us
+with compile-time type information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Builders}
@@ -187,7 +192,7 @@ To examine this in detail let's recall our previous example, but omit the ``wher
 The \verb!QueryBuilder! does not do much more than store the datasource. The \verb!from()! method returns the \verb!FromBuilder! that stores the table from the dictionary:
 
 \begin{verbatim}
-public class QueryBuilder {
+public class QueryBuilder extends Builder {
   ...
   public <T extends Table> FromBuilder<T> 
     from(T table);
@@ -198,7 +203,7 @@ The \verb!FromBuilder.select()! method returns \verb!SelectBuilder3! that stores
 
 \begin{verbatim}
 public class FromBuilder<T extends Table> 
-  extends QueryBuilder {
+  extends Builder {
   ...
   public <C1> SelectBuilder1<T, C1> 
     select(Column<T, C1> c1);
@@ -215,13 +220,14 @@ public class FromBuilder<T extends Table>
 
 Note that instead of having only one \verb!SelectBuilder! we choose to have many of them, numbered according to the amount of columns selected. Each of them carries all of the selected column types as generic type variables. This type variables can be used to generate tupled result or use the query as a subquery in a \emph{from} clause.
 
-Finally \verb!SelectBuilder3.find()! constructs the SQL query, executes it and returns the result:
+Finally \verb!SelectBuilder3.list()! constructs the SQL query, executes it and returns the result:
 
 \begin{verbatim}
-public class SelectBuilder3<T extends Table,C1,C2,C3> 
-  extends FromBuilder<T> {
+public class
+  SelectBuilder3<T extends Table,C1,C2,C3> 
+    extends SelectBuilder<T> {
   ...
-  public List<Tuple3<C1,C2,C3>> find() { ... }
+  public List<Tuple3<C1,C2,C3>> list();
 } 
 \end{verbatim}
 
@@ -261,14 +267,15 @@ public class ExpressionUtil {
     gt(Expression<E> e1, Expression<E> e2);
 
   public static Expression<Boolean> 
-    like(Expression<?> e, Expression<String> pattern);
+    like(Expression<?> e,
+      Expression<String> pattern);
 
   public static Expression<Boolean> 
     not(Expression<Boolean> e);
 
   public static Expression<Boolean> 
     and(Expression<Boolean>... e);
-  \ldots
+  ...
 }
 \end{verbatim}
 
@@ -311,7 +318,7 @@ We can now easily encode the expression \verb!WHERE name = 'Peter' or height > 1
 So far we have only allowed to select columns from the table. In general we want to select an arbitrary expression (such as \verb!name || ', ' || birthday!). Therefore the \verb!FromBuilder! class should just accept \verb!Expression!s instead of \verb!Column!s:
 
 \begin{verbatim}
-public class FromBuilder extends QueryBuilder {
+public class FromBuilder extends Builder {
   ...
   public <C1> SelectBuilder1<C1> 
     select(Expression<C1> c1);
@@ -339,7 +346,10 @@ public interface Alias<E> extends Expression<E> {
 }
 \end{verbatim}
 
-E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_name != "Jevgeni Kabanov"''. This would look like
+\textbf{TODO}
+
+E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE
+full\_name != "Peter Griffin"''. This would look like
 
 \begin{verbatim}
   Person p = new Person();
@@ -371,9 +381,7 @@ To use one table twice in the select one could just create seperate instances of
 \subsection{Control Flow and Reuse}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-If we want to construct the query depending on some conditions we have to pass the builder object through the control flow.
-Holding the object as a variable is clumsy since each builder method returns a different type. Also different types complicates to re-use the code.
-To solve this we encourage to use closures for the control flow:
+If we want to construct the query depending on some conditions we have to pass the builder object through the control flow. Holding the object as a variable is more complicated since each builder method returns a different type. Also different types complicates to re-use the code. To solve this we encourage to use closures for the control flow:
 
 \begin{verbatim}
 public interface Closure {
@@ -439,7 +447,8 @@ Other SQL features such as Order by, Group by, Having can also be implemented si
 So implementing the full SQL is only a matter of time.
 
 For a native SQL fragment one can include an untyped expression.
-It takes the corresponding type for the builder explicitly:
+It takes the corresponding SQL string, arguments and the type for the builder
+explicitly:
 
 \begin{verbatim}
   Person p = new Person();
@@ -521,7 +530,6 @@ new ClassBuilder(
   .getStatic(System.class, "out", PrintStream.class)
   .push("Hello, World!")
   .invokeVirtualVoid(
-    INVOKEVIRTUAL, 
     PrintStream.class, "println", String.class)
   .returnVoid()
   .endMethod();
@@ -575,7 +583,6 @@ What does the \verb!invokeVirtualVoid()! look like? First of all, it needs to co
 public class MethodBuilderS2V1<S0, S1, V0> {
   public MethodBuilderS0V1<V0> 
     invokeVirtualVoid(
-      int kind, 
       Class< ? super S0> owner, 
       String name, 
       Class< ? super S1> parameter1) {

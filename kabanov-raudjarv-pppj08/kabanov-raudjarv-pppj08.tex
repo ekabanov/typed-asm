@@ -93,18 +93,18 @@ The problem is that we would only find out about those errors when the query is 
 The solution we propose is to build on recent innovation in the area and embeds the whole of the SQL as a typesafe embedded DSL. The following example shows what we propose it to look like:
 
 \begin{verbatim}
-Person p = new Person();
+Person p = new Person(); 
 
-List<Tuple3<String, Integer, Date>> persons = 
+List<Tuple3<String, Integer, Date>> rows =
   new QueryBuilder(datasource)
-  .from(p)
-  .where(gt(p.height, 170)
-  .select(p.name, p.height, p.birthday)
-  .find();
-for (Tuple3<String, Integer, Date> person : persons) {
-  String name = person.v1();
-  Integer height = person.v2();
-  Date birthday = person.v3();
+    .from(p)
+    .where(gt(p.height, 170))
+    .select(p.name, p.height, p.birthday)
+    .list();
+for (Tuple3<String, Integer, Date> row : rows) {
+  String name = row.v1;
+  Integer height = row.v2;
+  Date birthday = row.v3;
   System.out.println(
     name + " " + height + " " + birthday);
 }
@@ -174,13 +174,13 @@ One of the main idioms in creating Java DSLs is hiding the return type by chaini
 To examine this in detail let's recall our previous example, but omit the ``where'' part for the moment:
 
 \begin{verbatim}
-Person p = new Person();
+  Person p = new Person();
 
-List<Tuple3<String, Integer, Date>> persons = 
-  new QueryBuilder(datasource)
-  .from(p)
-  .select(p.name, p.height, p.birthday)
-  .find();
+  List<Tuple3<String, Integer, Date>> persons = 
+    new QueryBuilder(datasource)
+      .from(p)
+      .select(p.name, p.height, p.birthday)
+      .list();
 \end{verbatim}
 
 
@@ -260,20 +260,15 @@ public class ExpressionUtil {
   public static <E> Expression<Boolean> 
     gt(Expression<E> e1, Expression<E> e2);
 
-  public static <E> Expression<Boolean> 
-    lt(Expression<E> e1, Expression<E> e2);
-
-  public static <E> Expression<Boolean> 
-    like(Expression<E> e, Expression<String> pattern);
+  public static Expression<Boolean> 
+    like(Expression<?> e, Expression<String> pattern);
 
   public static Expression<Boolean> 
     not(Expression<Boolean> e);
 
   public static Expression<Boolean> 
     and(Expression<Boolean>... e);
-
-  public static Expression<Boolean> 
-    or(Expression<Boolean>... e);
+  \ldots
 }
 \end{verbatim}
 
@@ -299,15 +294,17 @@ It is as straightforward as the constant expression and just returns the name of
 We can now easily encode the expression \verb!WHERE name = 'Peter' or height > 170!:
 
 \begin{verbatim}
-List<Tuple3<String, Integer, Date>> persons = 
-  new QueryBuilder(datasource)
-    .from(Person.TABLE)
-    .where(or(
-      eq(Person.NAME, "Peter"),
-      gt(Person.HEIGHT, 170))
-    )
-    .select(Person.NAME, Person.HEIGHT, Person.BIRTHDAY)
-    .find();
+  Person p = new Person();
+		
+  List<Tuple3<String, Integer, Date>> persons =
+    new QueryBuilder(datasource)
+      .from(p)
+      .where(or(
+          eq(p.name, "Peter"),
+          gt(p.height, 170))
+        )
+      .select(p.name, p.height, p.birthday)
+      .list();
 \end{verbatim}
 
 
@@ -345,27 +342,29 @@ public interface Alias<E> extends Expression<E> {
 E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_name != "Jevgeni Kabanov"''. This would look like
 
 \begin{verbatim}
-  PersonFL p = new PersonFL(null);
-  Alias<String> fullName = alias(concat(p.firstName,
-    " ", p.lastName), "full_name");
+  Person p = new Person();
+  Alias<String> fullName =
+    alias(concat(p.firstName, " ", p.lastName));
+		
   List<String> names = new QueryBuilder(datasource)
     .from(p)
-    .where(not(eq(fullName, "Jevgeni Kabanov")))
+    .where(not(eq(fullName, "Peter Griffin")))
     .select(fullName)
-    .find();
+    .list();
 \end{verbatim}
 
 To use one table twice in the select one could just create seperate instances of the table:
 
 \begin{verbatim}
-Person person = new Person();
-Person father = new Person();
-List<Tuple2<String, String>> names = 
-  new QueryBuilder(datasource)
-    .from(person, father)
-    .where(eq(person.fatherId, father.id))
-    .select(person.name, father.name)
-    .find();
+  Person person = new Person();
+  Person father = new Person();
+		
+  List<Tuple2<String, String>> names =
+    new QueryBuilder(datasource)
+      .from(person, father)
+      .where(eq(person.fatherId, father.id))
+      .select(person.name, father.name)
+      .list();
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -374,20 +373,13 @@ List<Tuple2<String, String>> names =
 
 If we want to construct the query depending on some conditions we have to pass the builder object through the control flow.
 Holding the object as a variable is clumsy since each builder method returns a different type. Also different types complicates to re-use the code.
-To solve this we encourage to use closures for the control flow.
-We introduce two types of closures - general closures and closures for columns. 
-
-The general closure can be used to alter tables and where conditions:
+To solve this we encourage to use closures for the control flow:
 
 \begin{verbatim}
 public interface Closure {
   void apply(Builder builder);
 }
-\end{verbatim}
 
-Each select builder (with certain number of columns) has also a corresponding closure that is able to add and remove columns:
-
-\begin{verbatim}
 public class SelectBuilderC2<C1,C2> 
   extends SelectBuilder {
   ...
@@ -400,31 +392,28 @@ public class SelectBuilderC2<C1,C2>
 }
 \end{verbatim}
 
-The following example illustrates how to abstract adding a person's father name to the select.
+So if we want to find persons by their name (and all persons if the name is null) we can use the following syntax:
 
 \begin{verbatim}
-final Person person = new Person("p");
+  Person p = new Person();
 
-new QueryBuilder(datasource)
-  .from(person)
-  .select(person.name)
-  .closure(new ClosureC1<String>() {
-    public void apply(SelectBuilderC1<C1>  builder) {
-      Person father = new Person("f");
-      builder
-        .addTables(father)
-        .addColumn(father.name)
-        .addConditions(
-          eq(person.fatherId, father.id));
-    }
-  });
+  List<Tuple2<Integer, String>> rows =
+    new QueryBuilder(datasource)
+      .from(p)
+      .closure(new Closure() {
+        public void apply(Builder builder) {
+          if (searchName != null) {
+            builder.addConditions(
+              eq(p.name, searchName));
+          }
+        }
+      })
+      .select(p.id, p.name)
+      .list();
 \end{verbatim}
 
-Here we use a closure to add another table, column and where condition to the select. Since we change the number of columns we have to either get the results from the builder in our closure or pass it to another one. Here we refer another closure that gets the results and prints them out.
-
-\textbf{TODO:} The examples is missing the refered additional closure.
-
-\textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
+Here we used a closure to alter the where clause if a certain condition is true.
+It is easy to re-use closures because the builder type passed in stays the same.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Rest Of SQL}
@@ -435,15 +424,16 @@ Other SQL features such as Order by, Group by, Having can also be implemented si
 \begin{verbatim}
   Person p = new Person();
   Alias<Integer> count = alias(count(p.id));
-  List<Tuple2<Integer, Integer>> rows
-    = new QueryBuilder(datasource)
+
+  List<Tuple2<Integer, Integer>> rows =
+    new QueryBuilder(datasource)
       .from(p)
       .where(not(eq(p.name, constant("Peter"))))
       .groupBy(p.fatherId)
       .having(gt(count, constant(3)))
       .orderBy(desc(count))
       .select(p.fatherId, count)
-      .find();
+      .list();
 \end{verbatim}
 
 So implementing the full SQL is only a matter of time.
@@ -453,18 +443,17 @@ It takes the corresponding type for the builder explicitly:
 
 \begin{verbatim}
   Person p = new Person();
-  List<Tuple2<String, Integer>> rows
-    = new QueryBuilder(datasource)
-    .from(p)
-    .select(p.name,
-      unchecked(Integer.class,
-        "util.count_children(id)"))
-    .find();
+
+  List<Tuple2<String, Integer>> rows =
+    new QueryBuilder(datasource)
+      .from(p)
+      .select(p.name,
+        unchecked(Integer.class,
+          "util.count_children(id)"))
+      .list();
 \end{verbatim}
 
 In this case we could cover the stored functions and procedures in the dictionary also.
-
-\textbf{TODO:} Discuss briefly ORDER BY, GROUP BY, extensions (RDBMS-specific), untyped expression, functions and procedures and others. Reader must understand that implementing full SQL is only a matter of time. Don't go into too much detail.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

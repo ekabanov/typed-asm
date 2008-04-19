@@ -2,7 +2,6 @@ package sql.builder;
 
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
-import sql.expr.OrderByExpression;
 
 public class GroupByBuilder extends HavingBuilder {
 

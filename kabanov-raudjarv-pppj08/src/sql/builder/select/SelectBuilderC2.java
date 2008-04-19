@@ -1,7 +1,7 @@
 package sql.builder.select;
 
 import java.util.List;
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.transform.ColumnAppenderC1;
 import sql.dict.Table;
@@ -11,7 +11,7 @@ import sql.tuple.Tuple2;
 
 public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 
-	public SelectBuilderC2(BaseBuilder builder) {
+	public SelectBuilderC2(Builder builder) {
 		super(builder);
 	}
 	

@@ -6,7 +6,7 @@ import sql.expr.OrderByExpression;
 
 public class HavingBuilder extends OrderByBuilder {
 
-	public HavingBuilder(BaseBuilder builder) {
+	public HavingBuilder(Builder builder) {
 		super(builder);
 	}
 	

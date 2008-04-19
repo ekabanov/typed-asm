@@ -1,7 +1,7 @@
 package sql.builder.select;
 
 import java.util.List;
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.QueryBuilder;
 import sql.builder.transform.ColumnAppenderC1;
@@ -12,7 +12,7 @@ import sql.expr.Expression;
 
 public class SelectBuilderC1<C1> extends SelectBuilder {
 
-	public SelectBuilderC1(BaseBuilder builder) {
+	public SelectBuilderC1(Builder builder) {
 		super(builder);
 	}
 	

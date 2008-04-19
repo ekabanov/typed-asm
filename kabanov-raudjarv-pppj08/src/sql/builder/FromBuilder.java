@@ -5,7 +5,7 @@ import sql.expr.BooleanExpression;
 
 public class FromBuilder extends WhereBuilder {
 
-	public FromBuilder(BaseBuilder builder) {
+	public FromBuilder(Builder builder) {
 		super(builder);
 	}
 	

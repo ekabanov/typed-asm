@@ -32,7 +32,7 @@ import sql.expr.OrderByExpression;
  * 
  * @author Rein Raudjärv
  */
-public class BaseBuilder {
+public class Builder {
 
 	private QueryHandler 				handler;
 	
@@ -52,13 +52,13 @@ public class BaseBuilder {
 	private List<OrderByExpression> 	directions;	
 	
 
-	public BaseBuilder() {
+	public Builder() {
 		this.columns	= new ArrayList<Expression<?>>();
 		this.tables		= new ArrayList<Table>();
 		this.conditions	= new ArrayList<BooleanExpression>();
 	}
 	
-	protected BaseBuilder(BaseBuilder builder) {
+	protected Builder(Builder builder) {
 		this.handler	= builder.handler;
 		this.columns	= builder.columns;
 		this.tables		= builder.tables;
@@ -102,12 +102,12 @@ public class BaseBuilder {
 		this.columns = columns;
 	}
 
-	public BaseBuilder addColumn(Expression<?> column) {
+	public Builder addColumn(Expression<?> column) {
 		columns.add(column);
 		return this;
 	}
 	
-	public BaseBuilder removeColumn(Expression<?> column) {
+	public Builder removeColumn(Expression<?> column) {
 		columns.remove(column);
 		return this;
 	}
@@ -126,12 +126,12 @@ public class BaseBuilder {
 		this.tables = tables;
 	}
 	
-	public BaseBuilder addTables(Table... tables) {
+	public Builder addTables(Table... tables) {
 		this.tables.addAll(Arrays.asList(tables));
 		return this;
 	}
 	
-	public BaseBuilder removeTables(Table... tables) {
+	public Builder removeTables(Table... tables) {
 		this.tables.removeAll(Arrays.asList(tables));
 		return this;
 	}
@@ -150,12 +150,12 @@ public class BaseBuilder {
 		this.conditions = conditions;
 	}
 	
-	public BaseBuilder addConditions(BooleanExpression... conditions) {
+	public Builder addConditions(BooleanExpression... conditions) {
 		this.conditions.addAll(Arrays.asList(conditions));
 		return this;
 	}
 	
-	public BaseBuilder removeConditions(BooleanExpression... conditions) {
+	public Builder removeConditions(BooleanExpression... conditions) {
 		this.conditions.removeAll(Arrays.asList(conditions));
 		return this;
 	}
@@ -175,13 +175,13 @@ public class BaseBuilder {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public BaseBuilder addGroups(NamedExpression... groups) {
+	public Builder addGroups(NamedExpression... groups) {
 		this.groups.addAll((Collection<? extends NamedExpression<?>>) Arrays.asList(groups));
 		return this;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public BaseBuilder removeGroups(NamedExpression... groups) {
+	public Builder removeGroups(NamedExpression... groups) {
 		this.groups.removeAll(Arrays.asList(groups));
 		return this;
 	}
@@ -200,12 +200,12 @@ public class BaseBuilder {
 		this.havingConditions = havingConditions;
 	}
 	
-	public BaseBuilder addHavingConditions(BooleanExpression... havingConditions) {
+	public Builder addHavingConditions(BooleanExpression... havingConditions) {
 		this.havingConditions.addAll(Arrays.asList(havingConditions));
 		return this;
 	}
 	
-	public BaseBuilder removeHavingConditions(BooleanExpression... havingConditions) {
+	public Builder removeHavingConditions(BooleanExpression... havingConditions) {
 		this.havingConditions.removeAll(Arrays.asList(havingConditions));
 		return this;
 	}
@@ -224,19 +224,19 @@ public class BaseBuilder {
 		this.directions = directions;
 	}
 	
-	public BaseBuilder addDirections(OrderByExpression... directions) {
+	public Builder addDirections(OrderByExpression... directions) {
 		this.directions.addAll(Arrays.asList(directions));
 		return this;
 	}
 	
-	public BaseBuilder removeDirections(OrderByExpression... directions) {
+	public Builder removeDirections(OrderByExpression... directions) {
 		this.directions.removeAll(Arrays.asList(directions));
 		return this;
 	}
 	
 	// Closure
 	
-	public BaseBuilder closure(Closure closure) {
+	public Builder closure(Closure closure) {
 		closure.apply(this);
 		return this;
 	}

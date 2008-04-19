@@ -1,6 +1,6 @@
 package sql.builder.select;
 
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.transform.ColumnAppenderC1;
 import sql.builder.transform.ColumnAppenderC2;
@@ -11,7 +11,7 @@ import sql.expr.Expression;
 
 public class SelectBuilderC0 extends SelectBuilder {
 
-	public SelectBuilderC0(BaseBuilder builder) {
+	public SelectBuilderC0(Builder builder) {
 		super(builder);
 	}
 	

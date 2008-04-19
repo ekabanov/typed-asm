@@ -1,10 +1,10 @@
 package sql.builder.select;
 
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 
-public class SelectBuilder extends BaseBuilder {
+public class SelectBuilder extends Builder {
 
-	public SelectBuilder(BaseBuilder builder) {
+	public SelectBuilder(Builder builder) {
 		super(builder);
 	}
 

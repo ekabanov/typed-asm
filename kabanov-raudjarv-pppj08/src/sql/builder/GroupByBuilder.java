@@ -5,7 +5,7 @@ import sql.expr.BooleanExpression;
 
 public class GroupByBuilder extends HavingBuilder {
 
-	public GroupByBuilder(BaseBuilder builder) {
+	public GroupByBuilder(Builder builder) {
 		super(builder);
 	}
 	

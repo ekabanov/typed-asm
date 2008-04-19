@@ -6,7 +6,7 @@ import sql.expr.NamedExpression;
 
 public class WhereBuilder extends GroupByBuilder {
 
-	public WhereBuilder(BaseBuilder builder) {
+	public WhereBuilder(Builder builder) {
 		super(builder);
 	}
 	

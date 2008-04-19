@@ -4,7 +4,7 @@ import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.QueryBuilder;
 import sql.dict.Person;
@@ -22,7 +22,7 @@ public class Example11 {
 		List<Tuple2<Integer, String>> rows = new QueryBuilder(datasource)
 			.from(person)
 			.closure(new Closure() {
-				public void apply(BaseBuilder builder) {
+				public void apply(Builder builder) {
 					if (searchName != null) {
 						builder.addConditions(eq(person.name, constant(searchName)));
 						builder.addDirections(asc(person.name));

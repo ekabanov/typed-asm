@@ -346,7 +346,8 @@ E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE full\_nam
 
 \begin{verbatim}
   PersonFL p = new PersonFL(null);
-  Alias<String> fullName = alias(concat(p.firstName, " ", p.lastName), "full_name");
+  Alias<String> fullName = alias(concat(p.firstName,
+    " ", p.lastName), "full_name");
   List<String> names = new QueryBuilder(datasource)
     .from(p)
     .where(not(eq(fullName, "Jevgeni Kabanov")))
@@ -372,7 +373,7 @@ List<Tuple2<String, String>> names =
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 If we want to construct the query depending on some conditions we have to pass the builder object through the control flow.
-Since each builder method returns a different type holding the object as a variable is clumsy. Also different types complicates to re-use the code.
+Holding the object as a variable is clumsy since each builder method returns a different type. Also different types complicates to re-use the code.
 To solve this we encourage to use closures for the control flow.
 We introduce two types of closures - general closures and closures for columns. 
 
@@ -433,7 +434,7 @@ Other SQL features such as Order by, Group by, Having can also be implemented si
   Person p = new Person();
   Alias<Integer> count = alias(count(p.id));
   List<Tuple2<Integer, Integer>> rows
-      = new QueryBuilder(datasource)
+    = new QueryBuilder(datasource)
     .from(p)
     .where(not(eq(p.name, constant("Peter"))))
     .groupBy(p.fatherId)
@@ -451,11 +452,11 @@ It takes the corresponding type for the builder explicitly:
 \begin{verbatim}
   Person p = new Person();
   List<Tuple2<String, Integer>> rows
-      = new QueryBuilder(datasource)
+    = new QueryBuilder(datasource)
     .from(p)
     .select(p.name,
-        unchecked(Integer.class,
-            "util.count_children(id)"))
+      unchecked(Integer.class,
+        "util.count_children(id)"))
     .find();
 \end{verbatim}
 

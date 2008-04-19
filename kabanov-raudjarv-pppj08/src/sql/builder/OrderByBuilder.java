@@ -8,9 +8,9 @@ import sql.expr.BooleanExpression;
 import sql.expr.Expression;
 import sql.expr.OrderByExpression;
 
-public class OrderByBuilder extends BaseBuilder {
+public class OrderByBuilder extends Builder {
 
-	public OrderByBuilder(BaseBuilder builder) {
+	public OrderByBuilder(Builder builder) {
 		super(builder);
 	}
 	

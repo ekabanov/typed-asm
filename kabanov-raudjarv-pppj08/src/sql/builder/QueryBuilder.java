@@ -7,9 +7,9 @@ import sql.dict.Table;
 import sql.expr.BooleanExpression;
 
 
-public class QueryBuilder extends BaseBuilder {
+public class QueryBuilder extends Builder {
 
-	public QueryBuilder(BaseBuilder builder) {
+	public QueryBuilder(Builder builder) {
 		super(builder);
 	}
 	

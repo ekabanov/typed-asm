@@ -1,7 +1,7 @@
 package sql.builder.select;
 
 import java.util.List;
-import sql.builder.BaseBuilder;
+import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.dict.Table;
 import sql.expr.BooleanExpression;
@@ -10,7 +10,7 @@ import sql.tuple.Tuple3;
 
 public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
 
-	public SelectBuilderC3(BaseBuilder builder) {
+	public SelectBuilderC3(Builder builder) {
 		super(builder);
 	}
 	

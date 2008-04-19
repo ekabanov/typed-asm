@@ -9,11 +9,11 @@ import java.util.List;
 import sql.api.QueryHandler;
 import sql.api.ResultReader;
 import sql.api.StatementCallback;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.Expression;
-import sql.expr.NamedExpression;
+import sql.expr.ColumnExpression;
 import sql.expr.OrderByExpression;
+import sql.expr.Table;
 
 /**
  * SQL Select builder implementation.
@@ -41,12 +41,12 @@ public class Builder {
 	// From
 	private List<Table> 				tables;
 	// Where
-	private List<BooleanExpression> 	conditions;
+	private List<WhereExpression> 		conditions;
 	
 	// Group by
-	private List<NamedExpression<?>>	groups;
+	private List<ColumnExpression<?>>	groups;
 	// Having
-	private List<BooleanExpression> 	havingConditions;
+	private List<WhereExpression> 		havingConditions;
 	
 	// Order by
 	private List<OrderByExpression> 	directions;	
@@ -55,7 +55,7 @@ public class Builder {
 	public Builder() {
 		this.columns	= new ArrayList<Expression<?>>();
 		this.tables		= new ArrayList<Table>();
-		this.conditions	= new ArrayList<BooleanExpression>();
+		this.conditions	= new ArrayList<WhereExpression>();
 	}
 	
 	protected Builder(Builder builder) {
@@ -138,74 +138,74 @@ public class Builder {
 	
 	// Where
 	
-	public List<BooleanExpression> getConditions() {
-		return new ArrayList<BooleanExpression>(conditions);
+	public List<WhereExpression> getConditions() {
+		return new ArrayList<WhereExpression>(conditions);
 	}
 
-	protected List<BooleanExpression> _getConditions() {
+	protected List<WhereExpression> _getConditions() {
 		return conditions;
 	}
 	
-	protected void _setConditions(List<BooleanExpression> conditions) {
+	protected void _setConditions(List<WhereExpression> conditions) {
 		this.conditions = conditions;
 	}
 	
-	public Builder addConditions(BooleanExpression... conditions) {
+	public Builder addConditions(WhereExpression... conditions) {
 		this.conditions.addAll(Arrays.asList(conditions));
 		return this;
 	}
 	
-	public Builder removeConditions(BooleanExpression... conditions) {
+	public Builder removeConditions(WhereExpression... conditions) {
 		this.conditions.removeAll(Arrays.asList(conditions));
 		return this;
 	}
 	
 	// Group by
 	
-	public List<NamedExpression<?>> getGroups() {
-		return new ArrayList<NamedExpression<?>>(groups);
+	public List<ColumnExpression<?>> getGroups() {
+		return new ArrayList<ColumnExpression<?>>(groups);
 	}
 	
-	protected List<NamedExpression<?>> _getGroups() {
+	protected List<ColumnExpression<?>> _getGroups() {
 		return groups;
 	}
 	
-	protected void _setGroups(List<NamedExpression<?>> groups) {
+	protected void _setGroups(List<ColumnExpression<?>> groups) {
 		this.groups = groups;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Builder addGroups(NamedExpression... groups) {
-		this.groups.addAll((Collection<? extends NamedExpression<?>>) Arrays.asList(groups));
+	public Builder addGroups(ColumnExpression... groups) {
+		this.groups.addAll((Collection<? extends ColumnExpression<?>>) Arrays.asList(groups));
 		return this;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Builder removeGroups(NamedExpression... groups) {
+	public Builder removeGroups(ColumnExpression... groups) {
 		this.groups.removeAll(Arrays.asList(groups));
 		return this;
 	}
 	
 	// Having
 	
-	public List<BooleanExpression> getHavingConditions() {
-		return new ArrayList<BooleanExpression>(havingConditions);
+	public List<WhereExpression> getHavingConditions() {
+		return new ArrayList<WhereExpression>(havingConditions);
 	}
 	
-	protected List<BooleanExpression> _getHavingConditions() {
+	protected List<WhereExpression> _getHavingConditions() {
 		return havingConditions;
 	}
 	
-	protected void _setHavingConditions(List<BooleanExpression> havingConditions) {
+	protected void _setHavingConditions(List<WhereExpression> havingConditions) {
 		this.havingConditions = havingConditions;
 	}
 	
-	public Builder addHavingConditions(BooleanExpression... havingConditions) {
+	public Builder addHavingConditions(WhereExpression... havingConditions) {
 		this.havingConditions.addAll(Arrays.asList(havingConditions));
 		return this;
 	}
 	
-	public Builder removeHavingConditions(BooleanExpression... havingConditions) {
+	public Builder removeHavingConditions(WhereExpression... havingConditions) {
 		this.havingConditions.removeAll(Arrays.asList(havingConditions));
 		return this;
 	}
@@ -272,7 +272,7 @@ public class Builder {
 		}
 		if (!conditions.isEmpty()) {
 			sb.append(" WHERE ");
-			for (Iterator<BooleanExpression> it = conditions.iterator(); it.hasNext();) {
+			for (Iterator<WhereExpression> it = conditions.iterator(); it.hasNext();) {
 				sb.append(it.next().getSqlString());
 				if (it.hasNext()) {
 					sb.append(", ");

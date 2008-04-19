@@ -1,7 +1,7 @@
 package sql.builder;
 
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
+import sql.expr.Table;
 
 public class FromBuilder extends WhereBuilder {
 
@@ -21,15 +21,15 @@ public class FromBuilder extends WhereBuilder {
 	
 	// Where
 	
-	public FromBuilder addConditions(BooleanExpression... conditions) {
+	public FromBuilder addConditions(WhereExpression... conditions) {
 		return (FromBuilder) super.addConditions(conditions);
 	}
 	
-	public FromBuilder removeConditions(BooleanExpression... conditions) {
+	public FromBuilder removeConditions(WhereExpression... conditions) {
 		return (FromBuilder) super.removeConditions(conditions);
 	}
 	
-	public WhereBuilder where(BooleanExpression conditions) {
+	public WhereBuilder where(WhereExpression conditions) {
 		addConditions(conditions);
 		return new WhereBuilder(this);
 	}

@@ -5,9 +5,9 @@ import sql.builder.Closure;
 import sql.builder.transform.ColumnAppenderC1;
 import sql.builder.transform.ColumnAppenderC2;
 import sql.builder.transform.ColumnAppenderC3;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.Expression;
+import sql.expr.Table;
 
 public class SelectBuilderC0 extends SelectBuilder {
 
@@ -27,11 +27,11 @@ public class SelectBuilderC0 extends SelectBuilder {
 	
 	// Where
 	
-	public SelectBuilderC0 addConditions(BooleanExpression... conditions) {
+	public SelectBuilderC0 addConditions(WhereExpression... conditions) {
 		return addConditions(conditions);
 	}
 	
-	public SelectBuilderC0 removeConditions(BooleanExpression... conditions) {
+	public SelectBuilderC0 removeConditions(WhereExpression... conditions) {
 		return removeConditions(conditions);
 	}
 	

@@ -4,9 +4,9 @@ import java.util.List;
 import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.transform.ColumnAppenderC1;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.Expression;
+import sql.expr.Table;
 import sql.tuple.Tuple2;
 
 public class SelectBuilderC2<C1,C2> extends SelectBuilder {
@@ -27,11 +27,11 @@ public class SelectBuilderC2<C1,C2> extends SelectBuilder {
 	
 	// Where
 	
-	public SelectBuilderC2<C1,C2> addConditions(BooleanExpression... conditions) {
+	public SelectBuilderC2<C1,C2> addConditions(WhereExpression... conditions) {
 		return addConditions(conditions);
 	}
 	
-	public SelectBuilderC2<C1,C2> removeConditions(BooleanExpression... conditions) {
+	public SelectBuilderC2<C1,C2> removeConditions(WhereExpression... conditions) {
 		return removeConditions(conditions);
 	}
 	

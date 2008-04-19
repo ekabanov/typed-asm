@@ -1,8 +1,8 @@
 package sql.builder;
 
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.OrderByExpression;
+import sql.expr.Table;
 
 public class HavingBuilder extends OrderByBuilder {
 
@@ -22,21 +22,21 @@ public class HavingBuilder extends OrderByBuilder {
 	
 	// Where
 	
-	public HavingBuilder addConditions(BooleanExpression... conditions) {
+	public HavingBuilder addConditions(WhereExpression... conditions) {
 		return (HavingBuilder) super.addConditions(conditions);
 	}
 	
-	public HavingBuilder removeConditions(BooleanExpression... conditions) {
+	public HavingBuilder removeConditions(WhereExpression... conditions) {
 		return (HavingBuilder) super.removeConditions(conditions);
 	}
 	
 	// Having
 	
-	public HavingBuilder addHavingConditions(BooleanExpression... conditions) {
+	public HavingBuilder addHavingConditions(WhereExpression... conditions) {
 		return (HavingBuilder) super.addHavingConditions(conditions);
 	}
 	
-	public HavingBuilder removeHavingConditions(BooleanExpression... conditions) {
+	public HavingBuilder removeHavingConditions(WhereExpression... conditions) {
 		return (HavingBuilder) super.removeHavingConditions(conditions);
 	}
 	

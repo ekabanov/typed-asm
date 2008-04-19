@@ -3,9 +3,9 @@ package sql.builder.select;
 import java.util.List;
 import sql.builder.Builder;
 import sql.builder.Closure;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.Expression;
+import sql.expr.Table;
 import sql.tuple.Tuple3;
 
 public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
@@ -26,11 +26,11 @@ public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
 	
 	// Where
 	
-	public SelectBuilderC3<C1,C2,C3> addConditions(BooleanExpression... conditions) {
+	public SelectBuilderC3<C1,C2,C3> addConditions(WhereExpression... conditions) {
 		return addConditions(conditions);
 	}
 	
-	public SelectBuilderC3<C1,C2,C3> removeConditions(BooleanExpression... conditions) {
+	public SelectBuilderC3<C1,C2,C3> removeConditions(WhereExpression... conditions) {
 		return removeConditions(conditions);
 	}
 	

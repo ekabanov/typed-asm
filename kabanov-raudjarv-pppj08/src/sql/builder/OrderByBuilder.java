@@ -3,10 +3,10 @@ package sql.builder;
 import sql.builder.select.SelectBuilderC1;
 import sql.builder.select.SelectBuilderC2;
 import sql.builder.select.SelectBuilderC3;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
 import sql.expr.Expression;
 import sql.expr.OrderByExpression;
+import sql.expr.Table;
 
 public class OrderByBuilder extends Builder {
 
@@ -26,21 +26,21 @@ public class OrderByBuilder extends Builder {
 	
 	// Where
 	
-	public OrderByBuilder addConditions(BooleanExpression... conditions) {
+	public OrderByBuilder addConditions(WhereExpression... conditions) {
 		return addConditions(conditions);
 	}
 	
-	public OrderByBuilder removeConditions(BooleanExpression... conditions) {
+	public OrderByBuilder removeConditions(WhereExpression... conditions) {
 		return removeConditions(conditions);
 	}
 	
 	// Having
 	
-	public OrderByBuilder addHavingConditions(BooleanExpression... conditions) {
+	public OrderByBuilder addHavingConditions(WhereExpression... conditions) {
 		return (OrderByBuilder) super.addHavingConditions(conditions);
 	}
 	
-	public OrderByBuilder removeHavingConditions(BooleanExpression... conditions) {
+	public OrderByBuilder removeHavingConditions(WhereExpression... conditions) {
 		return (OrderByBuilder) super.removeHavingConditions(conditions);
 	}	
 	

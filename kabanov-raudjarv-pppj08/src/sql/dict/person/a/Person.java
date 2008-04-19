@@ -1,8 +1,8 @@
 package sql.dict.person.a;
 
 import java.util.Date;
-import sql.dict.Column;
-import sql.dict.Table;
+import sql.expr.Column;
+import sql.expr.Table;
 
 
 public class Person implements Table {

@@ -3,8 +3,8 @@ package sql.builder;
 import javax.sql.DataSource;
 import sql.api.JdbcQueryHandler;
 import sql.api.QueryHandler;
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
+import sql.expr.Table;
 
 
 public class QueryBuilder extends Builder {
@@ -38,11 +38,11 @@ public class QueryBuilder extends Builder {
 	
 	// Where
 	
-	public QueryBuilder addConditions(BooleanExpression... conditions) {
+	public QueryBuilder addConditions(WhereExpression... conditions) {
 		return addConditions(conditions);
 	}
 	
-	public QueryBuilder removeConditions(BooleanExpression... conditions) {
+	public QueryBuilder removeConditions(WhereExpression... conditions) {
 		return removeConditions(conditions);
 	}
 	

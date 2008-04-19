@@ -1,7 +1,7 @@
 package sql.dict.person.c;
 
-import sql.dict.Column;
-import sql.dict.Table;
+import sql.expr.Column;
+import sql.expr.Table;
 
 
 public class Person implements Table {

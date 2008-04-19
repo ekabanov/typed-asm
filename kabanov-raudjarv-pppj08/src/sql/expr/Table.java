@@ -1,4 +1,4 @@
-package sql.dict;
+package sql.expr;
 
 public interface Table {
 	String getName();

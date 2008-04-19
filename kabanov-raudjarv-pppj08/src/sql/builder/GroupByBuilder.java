@@ -1,7 +1,7 @@
 package sql.builder;
 
-import sql.dict.Table;
-import sql.expr.BooleanExpression;
+import sql.expr.WhereExpression;
+import sql.expr.Table;
 
 public class GroupByBuilder extends HavingBuilder {
 
@@ -21,25 +21,25 @@ public class GroupByBuilder extends HavingBuilder {
 	
 	// Where
 	
-	public GroupByBuilder addConditions(BooleanExpression... conditions) {
+	public GroupByBuilder addConditions(WhereExpression... conditions) {
 		return (GroupByBuilder) super.addConditions(conditions);
 	}
 	
-	public GroupByBuilder removeConditions(BooleanExpression... conditions) {
+	public GroupByBuilder removeConditions(WhereExpression... conditions) {
 		return (GroupByBuilder) super.removeConditions(conditions);
 	}
 	
 	// Having
 	
-	public GroupByBuilder addHavingConditions(BooleanExpression... conditions) {
+	public GroupByBuilder addHavingConditions(WhereExpression... conditions) {
 		return (GroupByBuilder) super.addHavingConditions(conditions);
 	}
 	
-	public GroupByBuilder removeHavingConditions(BooleanExpression... conditions) {
+	public GroupByBuilder removeHavingConditions(WhereExpression... conditions) {
 		return (GroupByBuilder) super.removeHavingConditions(conditions);
 	}
 	
-	public HavingBuilder having(BooleanExpression... conditions) {
+	public HavingBuilder having(WhereExpression... conditions) {
 		addHavingConditions(conditions);
 		return new HavingBuilder(this);
 	}

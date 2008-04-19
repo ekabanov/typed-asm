@@ -39,16 +39,10 @@ public class ExpressionUtil {
 	public static WhereExpression like(Object c, SelectExpression<String> e) { return null; }
 	
 	// In
-	public static <E> InExpressionBuilder<E> in(SelectExpression<E> e) {
-		return new InExpressionBuilder<E>() {
-			public InExpressionBuilder<E> value(SelectExpression<E> e) { return null; }
-			public InExpressionBuilder<E> value(E e) { return null; }
-			public WhereExpression end() { return null; }
-		};
-	}
-	public static interface InExpressionBuilder<E> {
-		InExpressionBuilder<E> value(SelectExpression<E> e);
-		InExpressionBuilder<E> value(E e);
+	public static <E> InBuilder<E> in(SelectExpression<E> e) { return null; }
+	public static interface InBuilder<E> {
+		InBuilder<E> value(SelectExpression<E> e);
+		InBuilder<E> value(E e);
 		WhereExpression end();
 	}
 	
@@ -71,6 +65,12 @@ public class ExpressionUtil {
 	// Concatenation
 	@SuppressWarnings("unchecked")
 	public static SelectExpression<String> concat(SelectExpression... e) { return null; }
+	public static ConcatBuilder concat() { return null; }
+	public static interface ConcatBuilder {
+		ConcatBuilder value(SelectExpression<?> e);
+		ConcatBuilder value(Object e);
+		SelectExpression<String> end();
+	}
 	
 	// Aggregations
 	public static SelectExpression<Integer> count(SelectExpression<?> e) { return null; }

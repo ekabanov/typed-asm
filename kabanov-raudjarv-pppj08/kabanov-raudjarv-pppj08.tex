@@ -341,12 +341,12 @@ If we want to use the same expression both in the select and where clauses. We c
 
 \begin{verbatim}
 public interface Alias<E> extends Expression<E> {
-  Expression<E> getExpression();
   String getName();
+  Expression<E> getSelectExpression();
 }
 \end{verbatim}
 
-\textbf{TODO}
+Here \verb!getName()! returns the given name and \verb!getSelectExpression()! outputs the original expression appended by `` AS (new name)``. 
 
 E.g. ``SELECT concat(first\_name, " ", last\_name) as full\_name WHERE
 full\_name != "Peter Griffin"''. This would look like

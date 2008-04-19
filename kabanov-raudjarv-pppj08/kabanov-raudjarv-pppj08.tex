@@ -409,7 +409,7 @@ new QueryBuilder(datasource)
   .from(person)
   .select(person.name)
   .closure(new ClosureC1<String>() {
-    public void apply(Builder builder) {
+    public void apply(SelectBuilderC1<C1>  builder) {
       Person father = new Person("f");
       builder
         .addTables(father)
@@ -421,6 +421,8 @@ new QueryBuilder(datasource)
 \end{verbatim}
 
 Here we use a closure to add another table, column and where condition to the select. Since we change the number of columns we have to either get the results from the builder in our closure or pass it to another one. Here we refer another closure that gets the results and prints them out.
+
+\textbf{TODO:} The examples is missing the refered additional closure.
 
 \textbf{TODO:} Appenders are actually very interesting, but may be too long to discuss here. We'll see after the rest of the content is in.
 
@@ -435,13 +437,13 @@ Other SQL features such as Order by, Group by, Having can also be implemented si
   Alias<Integer> count = alias(count(p.id));
   List<Tuple2<Integer, Integer>> rows
     = new QueryBuilder(datasource)
-    .from(p)
-    .where(not(eq(p.name, constant("Peter"))))
-    .groupBy(p.fatherId)
-    .having(gt(count, constant(3)))
-    .orderBy(desc(count))
-    .select(p.fatherId, count)
-    .find();
+      .from(p)
+      .where(not(eq(p.name, constant("Peter"))))
+      .groupBy(p.fatherId)
+      .having(gt(count, constant(3)))
+      .orderBy(desc(count))
+      .select(p.fatherId, count)
+      .find();
 \end{verbatim}
 
 So implementing the full SQL is only a matter of time.

@@ -4,7 +4,7 @@ import sql.expr.Column;
 import sql.expr.Table;
 
 
-public class Person implements Table {
+public class Person extends Table {
 	
 	private final String alias;
 	

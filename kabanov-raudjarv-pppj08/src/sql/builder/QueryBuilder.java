@@ -3,8 +3,8 @@ package sql.builder;
 import javax.sql.DataSource;
 import sql.api.JdbcQueryHandler;
 import sql.api.QueryHandler;
+import sql.expr.FromExpression;
 import sql.expr.WhereExpression;
-import sql.expr.Table;
 
 
 public class QueryBuilder extends Builder {
@@ -23,15 +23,15 @@ public class QueryBuilder extends Builder {
 	
 	// From
 	
-	public QueryBuilder addTables(Table... tables) {
-		return addTables(tables);
+	public QueryBuilder addTables(FromExpression... tables) {
+		return (QueryBuilder) super.addTables(tables);
 	}
 
-	public QueryBuilder removeTables(Table... tables) {
-		return removeTables(tables);
+	public QueryBuilder removeTables(FromExpression... tables) {
+		return (QueryBuilder) super.removeTables(tables);
 	}
 	
-	public FromBuilder from(Table... tables) {
+	public FromBuilder from(FromExpression... tables) {
 		addTables(tables);
 		return new FromBuilder(this);
 	}

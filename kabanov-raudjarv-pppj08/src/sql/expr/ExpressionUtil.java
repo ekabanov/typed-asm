@@ -19,16 +19,16 @@ public class ExpressionUtil {
 	
 	// Arithmetic
 	public static <E> WhereExpression eq(SelectExpression<E> e1, SelectExpression<E> e2) { return null; }
-	public static <E> WhereExpression eq(SelectExpression<E> e, Object c) { return null; }
-	public static <E> WhereExpression eq(Object c, SelectExpression<E> e) { return null; }
+	public static <E> WhereExpression eq(SelectExpression<E> e, E c) { return null; }
+	public static <E> WhereExpression eq(E c, SelectExpression<E> e) { return null; }
 	
 	public static <E> WhereExpression gt(SelectExpression<E> e1, SelectExpression<E> e2) { return null; }
-	public static <E> WhereExpression gt(SelectExpression<E> e, Object c) { return null; }
-	public static <E> WhereExpression gt(Object c, SelectExpression<E> e) { return null; }
+	public static <E> WhereExpression gt(SelectExpression<E> e, E c) { return null; }
+	public static <E> WhereExpression gt(E c, SelectExpression<E> e) { return null; }
 	
 	public static <E> WhereExpression lt(SelectExpression<E> e1, SelectExpression<E> e2) { return null; }
-	public static <E> WhereExpression lt(SelectExpression<E> e, Object c) { return null; }
-	public static <E> WhereExpression lt(Object c, SelectExpression<E> e) { return null; }
+	public static <E> WhereExpression lt(SelectExpression<E> e, E c) { return null; }
+	public static <E> WhereExpression lt(E c, SelectExpression<E> e) { return null; }
 	
 	// Is Null
 	public static WhereExpression isNull(SelectExpression<?> e) { return null; }
@@ -37,6 +37,23 @@ public class ExpressionUtil {
 	public static WhereExpression like(SelectExpression<?> e, SelectExpression<String> pattern) { return null; }
 	public static WhereExpression like(SelectExpression<?> e, String pattern) { return null; }
 	public static WhereExpression like(Object c, SelectExpression<String> e) { return null; }
+	
+	// In
+	public static <E> InExpressionBuilder<E> in(SelectExpression<E> e) {
+		return new InExpressionBuilder<E>() {
+			public InExpressionBuilder<E> value(SelectExpression<E> e) { return null; }
+			public InExpressionBuilder<E> value(E e) { return null; }
+			public WhereExpression end() { return null; }
+		};
+	}
+	public static interface InExpressionBuilder<E> {
+		InExpressionBuilder<E> value(SelectExpression<E> e);
+		InExpressionBuilder<E> value(E e);
+		WhereExpression end();
+	}
+	
+	// Exists
+	public static WhereExpression exists(FromExpression e) { return null; }
 
 	/*
 	 * #####################################################

@@ -9,11 +9,11 @@ import java.util.List;
 import sql.api.QueryHandler;
 import sql.api.ResultReader;
 import sql.api.StatementCallback;
-import sql.expr.WhereExpression;
-import sql.expr.Expression;
 import sql.expr.ColumnExpression;
+import sql.expr.Expression;
+import sql.expr.FromExpression;
 import sql.expr.OrderByExpression;
-import sql.expr.Table;
+import sql.expr.WhereExpression;
 
 /**
  * SQL Select builder implementation.
@@ -39,7 +39,7 @@ public class Builder {
 	// Select
 	private List<Expression<?>> 		columns;
 	// From
-	private List<Table> 				tables;
+	private List<FromExpression> 		tables;
 	// Where
 	private List<WhereExpression> 		conditions;
 	
@@ -54,7 +54,7 @@ public class Builder {
 
 	public Builder() {
 		this.columns	= new ArrayList<Expression<?>>();
-		this.tables		= new ArrayList<Table>();
+		this.tables		= new ArrayList<FromExpression>();
 		this.conditions	= new ArrayList<WhereExpression>();
 	}
 	
@@ -114,24 +114,24 @@ public class Builder {
 	
 	// From
 	
-	public List<Table> getTables() {
-		return new ArrayList<Table>(tables);
+	public List<FromExpression> getTables() {
+		return new ArrayList<FromExpression>(tables);
 	}
 	
-	protected List<Table> _getTables() {
+	protected List<FromExpression> _getTables() {
 		return tables;
 	}
 
-	protected void _setTables(List<Table> tables) {
+	protected void _setTables(List<FromExpression> tables) {
 		this.tables = tables;
 	}
 	
-	public Builder addTables(Table... tables) {
+	public Builder addTables(FromExpression... tables) {
 		this.tables.addAll(Arrays.asList(tables));
 		return this;
 	}
 	
-	public Builder removeTables(Table... tables) {
+	public Builder removeTables(FromExpression... tables) {
 		this.tables.removeAll(Arrays.asList(tables));
 		return this;
 	}
@@ -245,7 +245,7 @@ public class Builder {
 	
 	@SuppressWarnings("unchecked")
 	protected List uncheckedFind() {
-		return handler.find(getSql(), getStatementCallback(), getResultReader());
+		return handler.find(getSqlString(), getStatementCallback(), getResultReader());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -255,7 +255,7 @@ public class Builder {
 		return list.iterator().next();
 	}
 	
-	protected String getSql() {
+	protected String getSqlString() {
 		StringBuilder sb = new StringBuilder("SELECT ");
 		for (Iterator<Expression<?>> it = columns.iterator(); it.hasNext();) {
 			sb.append(it.next().getSqlString());
@@ -264,8 +264,8 @@ public class Builder {
 			}
 		}
 		sb.append(" FROM ");
-		for (Iterator<Table> it = tables.iterator(); it.hasNext();) {
-			sb.append(it.next().getName());
+		for (Iterator<FromExpression> it = tables.iterator(); it.hasNext();) {
+			sb.append(it.next().getSqlString());
 			if (it.hasNext()) {
 				sb.append(", ");
 			}

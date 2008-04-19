@@ -39,7 +39,7 @@ public class SelectBuilderC1<C1> extends SelectBuilder {
 	// Select
 	
 	@SuppressWarnings("unchecked")
-	public Expression<C1> getColumn1() {
+	public Expression<C1> c1() {
 		return (Expression<C1>) _getColumnFromEnd(0);
 	}
 	

@@ -5,11 +5,11 @@ import sql.builder.Closure;
 import sql.builder.transform.ColumnAppenderC1;
 import sql.builder.transform.ColumnAppenderC2;
 import sql.builder.transform.ColumnAppenderC3;
-import sql.expr.WhereExpression;
 import sql.expr.Expression;
 import sql.expr.Table;
+import sql.expr.WhereExpression;
 
-public class SelectBuilderC0 extends SelectBuilder {
+public class SelectBuilderC0 extends Builder {
 
 	public SelectBuilderC0(Builder builder) {
 		super(builder);

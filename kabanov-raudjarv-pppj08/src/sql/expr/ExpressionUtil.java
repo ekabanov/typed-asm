@@ -8,6 +8,20 @@ public class ExpressionUtil {
 	
 	/*
 	 * #####################################################
+	 *                      F R O M
+	 * #####################################################
+	 */
+	
+	// Unchecked
+	public static FromExpression uncheckedFrom(String sql, Object... args) { return null; }
+	public static UncheckedFromBuilder uncheckedFrom() { return null; }
+	public static interface UncheckedFromBuilder {
+		UncheckedFromBuilder append(String sql, Object... args);
+		FromExpression end();
+	}
+	
+	/*
+	 * #####################################################
 	 *                     W H E R E
 	 * #####################################################
 	 */
@@ -77,9 +91,15 @@ public class ExpressionUtil {
 	public static <E> SelectExpression<E> max(SelectExpression<E> e) { return null; }
 	public static <E> SelectExpression<E> min(SelectExpression<E> e) { return null; }
 	public static <E> SelectExpression<E> sum(SelectExpression<E> e) { return null; }
+	public static <E> SelectExpression<E> average(SelectExpression<E> e) { return null; }
 	
 	// Unchecked
 	public static <E> SelectExpression<E> unchecked(Class<E> type, String sql, Object... args) { return null; }
+	public static <E> UncheckedBuilder<E> unchecked(Class<E> type) { return null; }
+	public static interface UncheckedBuilder<E> {
+		UncheckedBuilder<E> append(String sql, Object... args);
+		SelectExpression<E> end();
+	}
 	
 	/*
 	 * #####################################################

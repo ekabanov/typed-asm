@@ -71,7 +71,7 @@ public class SelectBuilderC3<C1,C2,C3> extends SelectBuilder {
 	}	
 	
 	@SuppressWarnings("unchecked")
-	public List<Tuple3<C1,C2,C3>> find() {
+	public List<Tuple3<C1,C2,C3>> list() {
 		return uncheckedFind();
 	}
 	

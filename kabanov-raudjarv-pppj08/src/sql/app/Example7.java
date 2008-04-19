@@ -1,4 +1,4 @@
-package sql;
+package sql.app;
 
 import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ public class Example7 {
 		
 		final ClosureC2<String, String> printClosure = new ClosureC2<String, String>() {
 			public void apply(SelectBuilderC2<String, String> builder) {
-				List<Tuple2<String, String>> names = builder.find();
+				List<Tuple2<String, String>> names = builder.list();
 				for (Tuple2<String, String> tuple2 : names) {
 					System.out.println(tuple2.v1 + " " + tuple2.v2);
 				}

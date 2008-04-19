@@ -1,4 +1,4 @@
-package sql;
+package sql.app;
 
 import static sql.expr.ExpressionUtil.eq;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ public class Example8 {
 						.addConditions(eq(person.fatherId, father.id));
 				}
 			})
-			.find();
+			.list();
 		
 		for (Tuple2<String, String> tuple2 : names) {
 			System.out.println(tuple2.v1 + " " + tuple2.v2);

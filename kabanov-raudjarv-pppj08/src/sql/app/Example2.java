@@ -1,4 +1,4 @@
-package sql;
+package sql.app;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +18,7 @@ public class Example2 {
 		Connection con = datasource.getConnection();
 		PreparedStatement ps = con.prepareStatement(
 				"SELECT " + Person1.NAME + ", " + Person1.HEIGHT + ", " + Person1.BIRTHDAY
-				+ " FROM " + Person.TABLE);
+				+ " FROM " + new Person());
 		ps.execute();
 		ResultSet rs = ps.getResultSet();
 		while (rs.next()) {

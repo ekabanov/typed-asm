@@ -1,6 +1,6 @@
-package sql;
+package sql.app.article;
 
-import static sql.expr.ExpressionUtil.*;
+import static sql.expr.ExpressionUtil.eq;
 import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
@@ -17,19 +17,21 @@ public class Example6 {
 		DataSource datasource = null;
 		final String searchName = null;
 		
-		final Person person = new Person("p");
+		final Person p = new Person();
 		
-		List<Tuple2<Integer, String>> rows = new QueryBuilder(datasource)
-			.from(person)
-			.closure(new Closure() {
-				public void apply(Builder builder) {
-					if (searchName != null) {
-						builder.addConditions(eq(person.name, constant(searchName)));
+		List<Tuple2<Integer, String>> rows =
+			new QueryBuilder(datasource)
+				.from(p)
+				.closure(new Closure() {
+					public void apply(Builder builder) {
+						if (searchName != null) {
+							builder.addConditions(
+								eq(p.name, searchName));
+						}
 					}
-				}
-			})
-			.select(person.id, person.name)
-			.find();
+				})
+				.select(p.id, p.name)
+				.list();
 		
 		for (Tuple2<Integer, String> row : rows) {
 			Integer id = row.v1;

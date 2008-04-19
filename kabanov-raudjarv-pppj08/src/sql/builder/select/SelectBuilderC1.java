@@ -58,7 +58,7 @@ public class SelectBuilderC1<C1> extends SelectBuilder {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<C1> find() {
+	public List<C1> list() {
 		return uncheckedFind();
 	}
 	

@@ -1,4 +1,8 @@
-package sql.dict;
+package sql.dict.person.a;
+
+import java.util.Date;
+import sql.dict.Column;
+import sql.dict.Table;
 
 
 public class Person implements Table {
@@ -11,8 +15,8 @@ public class Person implements Table {
 	public String getName() { return "person"; };
 	public String getAlias() { return alias; }
 	
-	public final Column<Integer> id = new Column<Integer>(this, "id", Integer.class);
 	public final Column<String> name = new Column<String>(this, "name", String.class);
-	public final Column<Integer> fatherId = new Column<Integer>(this, "father_id", Integer.class);
+	public final Column<Integer> height = new Column<Integer>(this, "height", Integer.class);
+	public final Column<Date> birthday = new Column<Date>(this, "birthday", Date.class);
 
 }

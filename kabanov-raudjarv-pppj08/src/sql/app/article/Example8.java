@@ -1,4 +1,4 @@
-package sql;
+package sql.app.article;
 
 import static sql.expr.ExpressionUtil.unchecked;
 import java.sql.SQLException;
@@ -8,17 +8,21 @@ import sql.builder.QueryBuilder;
 import sql.dict.Person;
 import sql.tuple.Tuple2;
 
-public class Example13 {
+public class Example8 {
 
 	public static void main(String[] args) throws SQLException {
 		
 		DataSource datasource = null;
 		
 		Person p = new Person();
-		List<Tuple2<String, Integer>> rows = new QueryBuilder(datasource)
-			.from(p)
-			.select(p.name, unchecked(Integer.class, "util.countChildren(id)"))
-			.find();
+		
+		List<Tuple2<String, Integer>> rows =
+			new QueryBuilder(datasource)
+				.from(p)
+				.select(p.name,
+					unchecked(Integer.class,
+						"util.countChildren(id)"))
+				.list();
 		
 		for (Tuple2<String, Integer> row : rows) {
 			System.out.println(row.v1 + " " + row.v2);

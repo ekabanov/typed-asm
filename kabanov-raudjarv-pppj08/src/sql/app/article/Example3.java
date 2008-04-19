@@ -1,12 +1,12 @@
-package sql;
+package sql.app.article;
 
+import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import javax.sql.DataSource;
 import sql.builder.QueryBuilder;
-import sql.dict.Person;
-import sql.dict.Person1;
+import sql.dict.person.a.Person;
 import sql.tuple.Tuple3;
 
 public class Example3 {
@@ -15,12 +15,18 @@ public class Example3 {
 		
 		DataSource datasource = null;
 		
-		// from(Person.TABLE).select(Person.FIRST_NAME, Person.LAST_NAME);
+		Person p = new Person();
 		
-		List<Tuple3<String, Integer, Date>> persons = new QueryBuilder(datasource)
-			.from(Person.TABLE)
-			.select(Person1.NAME, Person1.HEIGHT, Person1.BIRTHDAY)
-			.find();
+		List<Tuple3<String, Integer, Date>> persons =
+			new QueryBuilder(datasource)
+				.from(p)
+				.where(or(
+						eq(p.name, "Peter"),
+						gt(p.height, 170))
+					)
+				.select(p.name, p.height, p.birthday)
+				.list();
+		
 		for (Tuple3<String, Integer, Date> person : persons) {
 			String name = person.v1;
 			Integer height = person.v2;

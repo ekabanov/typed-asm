@@ -1,4 +1,4 @@
-package sql;
+package sql.app.article;
 
 import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
@@ -9,7 +9,7 @@ import sql.dict.Person;
 import sql.expr.Alias;
 import sql.tuple.Tuple2;
 
-public class Example12 {
+public class Example7 {
 
 	public static void main(String[] args) throws SQLException {
 		
@@ -17,14 +17,16 @@ public class Example12 {
 		
 		Person p = new Person();
 		Alias<Integer> count = alias(count(p.id));
-		List<Tuple2<Integer, Integer>> rows = new QueryBuilder(datasource)
-			.from(p)
-			.where(not(eq(p.name, constant("Peter"))))
-			.groupBy(p.fatherId)
-			.having(gt(count, constant(3)))
-			.orderBy(desc(count))
-			.select(p.fatherId, count)
-			.find();
+		
+		List<Tuple2<Integer, Integer>> rows =
+			new QueryBuilder(datasource)
+				.from(p)
+				.where(not(eq(p.name, "Peter")))
+				.groupBy(p.fatherId)
+				.having(gt(count, 3))
+				.orderBy(desc(count))
+				.select(p.fatherId, count)
+				.list();
 		
 		for (Tuple2<Integer, Integer> row : rows) {
 			Integer id = row.v1;

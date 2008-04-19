@@ -1,4 +1,4 @@
-package sql;
+package sql.app;
 
 import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
@@ -15,15 +15,15 @@ public class Example10 {
 		
 		DataSource datasource = null;
 		
-		Person person = Person.TABLE;
-		Alias<String> title = alias(concat(person.name, person.id), "title");
+		Person p = new Person();
+		Alias<String> title = alias(concat(p.name, p.id), "title");
 		
 		List<Tuple2<String, String>> names = new QueryBuilder(datasource)
-			.from(person)
+			.from(p)
 			.where(not(isNull(title)))
-			.orderBy(asc(person.name), desc(title))
-			.select(person.name, title)
-			.find();
+			.orderBy(asc(p.name), desc(title))
+			.select(p.name, title)
+			.list();
 		for (Tuple2<String, String> tuple2 : names) {
 			String name = tuple2.v1;
 			String tit = tuple2.v2;

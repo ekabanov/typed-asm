@@ -1,4 +1,4 @@
-package sql;
+package sql.app;
 
 import static sql.expr.ExpressionUtil.*;
 import java.sql.SQLException;
@@ -30,7 +30,7 @@ public class Example11 {
 				}
 			})
 			.select(person.id, person.name)
-			.find();
+			.list();
 		
 		for (Tuple2<Integer, String> row : rows) {
 			Integer id = row.v1;

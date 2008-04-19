@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 import sql.builder.Builder;
 import sql.builder.Closure;
 import sql.builder.QueryBuilder;
-import sql.dict.Person;
+import sql.dict.person.c.Person;
 import sql.tuple.Tuple2;
 
 public class Example6 {

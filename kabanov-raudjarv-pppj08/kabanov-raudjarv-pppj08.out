@@ -1,0 +1,24 @@
+\BOOKMARK [1][]{section.1}{Introduction}{}
+\BOOKMARK [1][]{section.2}{Typesafe SQL}{}
+\BOOKMARK [2][]{subsection.2.1}{Tuples}{section.2}
+\BOOKMARK [2][]{subsection.2.2}{Metadata Dictionary}{section.2}
+\BOOKMARK [2][]{subsection.2.3}{Builders}{section.2}
+\BOOKMARK [2][]{subsection.2.4}{Expressions}{section.2}
+\BOOKMARK [2][]{subsection.2.5}{Aliases}{section.2}
+\BOOKMARK [2][]{subsection.2.6}{Control Flow and Reuse}{section.2}
+\BOOKMARK [2][]{subsection.2.7}{The Rest Of SQL}{section.2}
+\BOOKMARK [1][]{section.3}{Typed Bytecode Engineering}{}
+\BOOKMARK [2][]{subsection.3.1}{Typesafe DSL}{section.3}
+\BOOKMARK [2][]{subsection.3.2}{Tracking Stack and Local Variables}{section.3}
+\BOOKMARK [2][]{subsection.3.3}{Unsafe Assumptions}{section.3}
+\BOOKMARK [2][]{subsection.3.4}{Control Flow and Reuse}{section.3}
+\BOOKMARK [1][]{section.4}{Patterns and Discussion}{}
+\BOOKMARK [2][]{subsection.4.1}{Type Shaping}{section.4}
+\BOOKMARK [2][]{subsection.4.2}{Typesafe Metadata}{section.4}
+\BOOKMARK [2][]{subsection.4.3}{Unsafe Assumptions}{section.4}
+\BOOKMARK [2][]{subsection.4.4}{Call Chaining and Static Imports}{section.4}
+\BOOKMARK [2][]{subsection.4.5}{Closures}{section.4}
+\BOOKMARK [1][]{section.5}{Type Safety Limitations}{}
+\BOOKMARK [1][]{section.6}{Acknowledgements}{}
+\BOOKMARK [1][]{section.7}{Conclusions}{}
+\BOOKMARK [1][]{section.8}{References}{}

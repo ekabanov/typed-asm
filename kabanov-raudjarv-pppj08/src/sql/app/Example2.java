@@ -6,8 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import javax.sql.DataSource;
-import sql.dict.Person;
-import sql.dict.Person1;
+import sql.dict.person.a.Person;
 
 public class Example2 {
 
@@ -15,16 +14,18 @@ public class Example2 {
 		
 		DataSource datasource = null;
 		
+		Person p = new Person();
+		
 		Connection con = datasource.getConnection();
 		PreparedStatement ps = con.prepareStatement(
-				"SELECT " + Person1.NAME + ", " + Person1.HEIGHT + ", " + Person1.BIRTHDAY
-				+ " FROM " + new Person());
+				"SELECT " + p.name + ", " + p.height + ", " + p.birthday
+				+ " FROM " + p);
 		ps.execute();
 		ResultSet rs = ps.getResultSet();
 		while (rs.next()) {
-			String name = rs.getString(Person1.NAME.getName());
-			Integer height = rs.getInt(Person1.HEIGHT.getName());
-			Date birthday = rs.getDate(Person1.BIRTHDAY.getName());
+			String name = rs.getString(p.name.getName());
+			Integer height = rs.getInt(p.height.getName());
+			Date birthday = rs.getDate(p.birthday.getName());
 			System.out.println(name + " " + height + " " + birthday);
 		}
 		rs.close();

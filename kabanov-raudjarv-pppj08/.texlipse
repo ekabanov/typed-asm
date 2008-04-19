@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Sat Apr 19 14:53:36 EEST 2008
+builderNum=2
+outputDir=build/
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=
+mainTexFile=kabanov-raudjarv-pppj08.tex
+outputFile=kabanov-raudjarv-pppj08.pdf
+langSpell=
+markDer=true
+srcDir=

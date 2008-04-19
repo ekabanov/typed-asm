@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
 import sql.builder.QueryBuilder;
-import sql.dict.Person;
+import sql.dict.person.c.Person;
 import sql.tuple.Tuple2;
 
 public class Example8 {

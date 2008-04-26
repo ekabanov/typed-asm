@@ -137,7 +137,7 @@ public class Tuple2<T1, T2> implements Tuple {
 }
 \end{verbatim}
 
-We use tuples to return the query results with the right types. Instead of \verb!Tuple1! we can just use the unboxed type.
+We use tuples to return the query results with the right types. Instead of \verb!Tuple1! we can just use the type itself.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Metadata Dictionary}
@@ -315,7 +315,7 @@ We can now easily encode the expression \verb!WHERE name = 'Peter' or height > 1
 \end{verbatim}
 
 
-So far we have only allowed to select columns from the table. In general we want to select an arbitrary expression (such as \verb!name || ', ' || birthday!). Therefore the \verb!FromBuilder! class should just accept \verb!Expression!s instead of \verb!Column!s:
+So far we have only allowed to select columns from the table. In general we want to select an arbitrary expression (such as \verb!concat(name, ', ', birthday)!). Therefore the \verb!FromBuilder! class should just accept \verb!Expression!s instead of \verb!Column!s:
 
 \begin{verbatim}
 public class FromBuilder extends Builder {
@@ -551,7 +551,7 @@ The error means that our DSL tracks the types of the stack slots and since the m
 
 To achieve type safety we need to track stack size and types. We wouldn't want to allow to \verb!pop()! off an empty stack. And we would want to ensure that when you invoke a method all the parameters are there. 
 
-Since there is a different set of operations allowed for different stack sizes it is natural to have a class for each stack size. We choose to name (and number them) \verb!MethodBuilderS0!, \verb!MethodBuilderS1!, \verb!MethodBuilderS2! and so on.Each of them has only the methods possible with the current stack size. Now the method for \verb!pop()! will not even show up in autocompletion if the stack is not large enough.
+Since there is a different set of operations allowed for different stack sizes it is natural to have a class for each stack size. We choose to name (and number them) \verb!MethodBuilderS0!, \verb!MethodBuilderS1!, \verb!MethodBuilderS2! and so on. Each of them has only the methods possible with the current stack size. Now the method for \verb!pop()! will not even show up in autocompletion if the stack is not large enough.
 
 We can apply the same idea to tracking variables, allowing to add only one variable at a time and providing methods \verb!loadVar*! and \verb!stroreVar*!. This way our class name becomes \verb!MethodBuilderS*V*! where $S$ stands for stack size and $V$ stands for variable count.
 
@@ -715,33 +715,47 @@ Let us now take a step back and look at the patterns showing up in the design of
 Note that as previously in text we refer to the classes that implement the DSL API as \emph{builders}. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Type Shaping}
+\subsection{Syntax}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{quote}
-\emph{All of the relevant information about the current building state should be encoded in the builder type and the builder should have precisely the methods allowed in that state.}
+\emph{At any moment of time the DSL builder should have precisely the methods allowed in the current state.}
 \end{quote}
 
 We saw several examples of this pattern at work
 \begin{itemize}
 \item SQL query builders allowed \emph{from}, \emph{where} and \emph{select} to be called once and only once.
-\item Select builders types encode information about selected columns. 
-\item Select builders return only tuples that have precisely the selected data with types known ahead.
-\item Bytecode builders encode information about stack slot and local variable types.
 \item Bytecode builders hide methods that consume more stack slots than is available.
-\item Bytecode builder methods that consume stack slots must consume types fitting to the ones currently on stack.
 \end{itemize}
 
-This pattern is the basis of a properly designed typesafe DSL as instead of disallowing wrong behaviour we only allow \emph{precisely} right behaviour to begin with. 
+This pattern was discussed in a different setting in \cite{freeman2004jsr}. They used the interfaces to encode the syntax of the DSL while still implementing all of the interfaces by a few classes. In our case such an approach would work in the SQL case study language, but not in the bytecode engineering case study language, as we would still need method with different return types depending on the amount of tracked stack slots and local variables. 
 
-In both our examples the builder types encoded a list of types, which made it necessary to declare types with same (or similar) methods but different number of encoded types. We conjecture that it is a common enough pattern if you are encoding a complex enough DSL. However there are some ways around it, which we will review shortly.
+This is the first principle for building a typesafe DSL as it allows to encode the base syntax in a typesafe manner.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Type History}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{quote}
+\emph{You can accumulate type history as a type list and use it to reject actions that do not fit with that history}
+\end{quote}
+
+We saw several examples of this pattern at work
+\begin{itemize}
+\item Select builders types encode information about selected columns. 
+\item Bytecode builders encode information about stack slot and local variable types.
+\item Bytecode builder methods that consume stack slots must consume types fitting to the ones currently on stack.
+\item Bytecode builder local variable methods infer types from the values to variables and from variables to stack.
+\end{itemize}
+
+Type history is an important concept as it allows to reject actions based not on the types in the current method call, but in the previous method calls. In some DSLs type history comes naturally and makes up the basis of the language, like in case of the bytecode engineering DSL introduce previously. We conjecture that in any language that uses either stack or a stack-like environment this is the best approach to use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typesafe Metadata}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{quote}
-\emph{All of the metadata used by your DSL should include compile-time type information.}
+\emph{Metadata used by your DSL should include compile-time type information.}
 \end{quote}
 
 Both our DSLs made use of typesafe metadata, some of those uses were less obvious than others:
@@ -750,10 +764,13 @@ Both our DSLs made use of typesafe metadata, some of those uses were less obviou
 \item The SQL expressions and named aliases provided information about the type of expression. This metadata was accessible via the local variable that the expression was saved to.
 \item The SQL \verb!SelectBuilder! encoded metadata about its column types, which would be important if we wanted to use it as a subquery again saved in a variable.
 \item The bytecode DSL used class literals, which are typesafe metadata embedded in Java language.
-\item We could have required each bytecode DSL local variable to be declared separately as a \verb!Variable<T>! class that would encode the type of the actual variable and could be saved locally.
 \end{itemize}
 
-As you can see the metadata needs to be typesafe, but it can still be come from a runtime expression saved to a local variable. This allows a lot of flexibility beyond the predefined dictionary-style metadata.
+There are two type of typesafe metadata we can separate: metadata dictionary and runtime metadata. 
+
+Metadata dictionary is the metadata that is either generated or otherwise available in a static manner. This is the main building block of the DSLs that need to be extended beyond their basic syntax. 
+
+However we also need to extend the dictionary and that is where the runtime metadata comes in. The runtime metadata is encoded as a runtime expression with a static type. The type must encode all the metadata that we need. This way we can introduce local variables referring to such expressions on demand extending the metadata dictionary while still retaining the type safety property
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Unsafe Assumptions}
@@ -763,27 +780,60 @@ As you can see the metadata needs to be typesafe, but it can still be come from 
 \emph{Allow the user to do type unsafe actions, but make sure he has to document his assumptions.}
 \end{quote}
 
-\textbf{TODO}
+We saw two example of this pattern:
+\begin{itemize}
+\item In SQL the unchecked expressions still had to declare the expected type of the expression.
+\item The bytecode DSL allowed ignoring the type history by providing dedicated methods for type unsafe actions.
+\item In bytecode DSL we saw \verb!assume*! methods dedicated to documenting type assumptions.
+\end{itemize}
+
+Both parts of this pattern are very important. If you don't allow type unsafe actions it is likely that the users will find it limiting at some point and revert to bypassing your DSL. However using two APIs instead of one makes the code harder to read and maintain.
+
+If you don't allow users to document their assumptions you risk errors every time you do something unsafely. Assumptions allow to always hold the information about types in a local manner, even though it does not guarantee full type safety it still helps to develop safer code.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Call Chaining and Static Imports}
+\subsection{Hierarchical Expressions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{TODO}
+\begin{quote}
+\emph{Use method chaining when you need context and static functions when you need hierarchy and extensibility.}
+\end{quote}
+
+One of the main problems with method chaining is very poor support for hierarchy. We could have also structured the SQL like this:
+\begin{verbatim}
+//...
+.where
+  .and()
+    .eq(p.id, 3)
+    .gt(p.age, 17)
+  .endAnd()
+//...  
+\end{verbatim}
+However it is clumsy and the first time we would auto-format the source code we would lose all hints of hierarchy in the code structure.
+
+The other problem with method chaining is extensibility. In the case we just shown \verb!and()! has to return a builder that includes all of the SQL expressions (including the \verb!and()! itself). However different databases have different expressions and we need different sets of expressions in different cases.
+
+The obvious solution in this case is using static functions (and \verb!import static! to bring them into the local namespace). However static functions suffer from a different problem---unlike chained methods they cannot access the context. The context includes all the state that was accumulated by the previous chained method calls as well as type history. 
+
+On the other hand static functions can be added on demand, whereas builders are much harder to extend. In the end it is likely that you will need both for different parts of your language. In the case of SQL we chose to make the statement-like part of the syntax chained and the expression-like part of the system functional.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Closures}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{TODO}
+\begin{quote}
+\emph{Use closures to escape the method chaining for control flow and reuse.}
+\end{quote}
+
+We introduced closures in both DSLs that we reviewed. They allow for a flexible way to mix your DSL with the control flow of the host language. Of course if Java would have support for true closures it could be made more concise, but even with the current syntax it is quite usable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Type Safety Limitations}
+%\section{Type Safety Limitations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{TODO}
+%\textbf{TODO}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -791,15 +841,17 @@ As you can see the metadata needs to be typesafe, but it can still be come from 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\textbf{TODO}
+We would like to thank Juhan Aasaru, who developed the SQL DSL as a part of his master's thesis. He did a great job and contributed a lot of ideas that influenced this article. 
+
+We would also like to thank the readers of the dow.ngra.de blog that pointed out some of the problems with our initial prototypes.
+
+This work was partially supported by Estonian Science Foundation grant No. ????. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\textbf{TODO}
 
 \bibliographystyle{abbrv}
 \bibliography{kabanov-raudjarv-pppj08}

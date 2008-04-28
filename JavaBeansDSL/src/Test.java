@@ -15,6 +15,8 @@ public class Test {
       .finish()
     .finish()
     .toCompany();
+    
+    System.out.println(c);
   }
 
 }

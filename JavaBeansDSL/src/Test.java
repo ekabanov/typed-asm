@@ -2,12 +2,12 @@
 public class Test {
 
   public static void main(String[] args) {
-    Company c = new CompanyBuilder()
+    Company c = new CompanyBuilder<Builder>()
     .name("ZeroTurnaround")
     .address()
        .country("Estonia")
     .finish()
-    .addEmployee()
+    .employee()
       .firstName("Jevgeni")
       .lastName("Kabanov")
       .address()

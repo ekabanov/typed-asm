@@ -6,6 +6,3 @@ public class Company {
   Address address;
   Collection<Employee> employees = new ArrayList<Employee>();
 }
-
-
-

@@ -55,7 +55,7 @@ Projects like jMock and Hibernate Criteria Query introduced embedded DSLs into J
 
 Domain specific language usually refers to a small sublanguage that has very little overhead when expressing domain specific data and behaviour. DSL is a broad term \cite{vandeursen2000dsl,bentley1999pp} and can refer both to a fully implemented language and a specialised API that looks like a sublanguage \cite{hudak1996}, but still written using some general-purpose language. Such DSLs in the latter meaning have been introduced by both the functional \cite{bringert2004sph} and dynamic language communities \cite{cuadrado2007bds}. Both these communities (especially functional) took advantage of function composition and operator overloading to build combinator-based languages that look nothing like the original. The functional community also strongly supports the notion of type safety; therefore DSLs they create are usually statically typed.
 
-In Java the DSLs are also becoming increasingly popular. The first examples like jMock \cite{freeman2004jsr} and Hibernate Criteria \cite{bauer2005ha} introduced a technique for writing embedded DSLs using method call chaining that was coined Fluent Interface. 
+In Java the DSLs are also becoming increasingly popular. The first examples like jMock \cite{freeman2004jsr} and Hibernate Criteria \cite{bauer2005ha} introduced a technique for writing embedded DSLs using method call chaining that was coined Fluent Interface \cite{freeman2004jsr}. 
 
 In this paper we show that although Fluent Interface is a powerful concept it is not fitting in all contexts. We propose to mix it with static functions, metadata and closures to make full use of Java language capabilities. We also propose to make use of Java Generics to make the embedded DSLs truly typesafe. We test our proposals on two case studies---embedded DSLs for manipulating DSL queries and engineering Java bytecode.
 
@@ -85,8 +85,8 @@ while (rs.next()) {
 Already this example, simple as it is, illustrates the mistakes we can make:
 \begin{itemize}
 \item We could have misspelled any SQL command, like ``SELETC''.
-\item We could be misspelling the table name or the field names.
-\item We could be mistaken about the field type (e.g. height being a \emph{boolean}, where \emph{true} means ``over 170 cm'').
+\item We could be misspelling the table name or the column names.
+\item We could be mistaken about the column type, it could be string in the database.
 \item We could be reading wrong types from the result set.
 \end{itemize}
 The problem is that we would only find out about those errors when the query is executed. To make it worse, some errors would not even be reported and since most queries are assembled dynamically we can't ever be sure that it is error free.
@@ -130,9 +130,6 @@ public class Tuple2<T1, T2> implements Tuple {
     this.v1 = v1;
     this.v2 = v2;
   }		
-
-  public T1 v1() { return v1; }
-  public T2 v2() { return v2; }
 }
 \end{verbatim}
 
@@ -230,7 +227,7 @@ public class
 } 
 \end{verbatim}
 
-Note that since our builders carry the type of the table passed in \verb!from()! and that the \verb!FromBuilder! only accepts the columns belonging to the same type. This provides additional safety as the programmer cannot select fields from a table that was not written in from.
+Note that since our builders carry the type of the table passed in \verb!from()! and that the \verb!FromBuilder! only accepts the columns belonging to the same type. This provides additional safety as the programmer cannot select columns from a table that was not written in from.
 
 However this solution is hard to extend when there is more than one table in the \emph{from} clause. We could apply the same idiom and tuple all the builders over the \emph{from} table types, but to actually check the type we need the methods to be indexed by the table type indexes (e.g. by writing \verb!select1()!, \verb!select2()!,~\ldots). Since this is uncomfortable and is influenced by changes in \emph{from} clause we decided to leave this check out altogether and the builders do not carry the table types in the actual implementation.
 
@@ -278,7 +275,7 @@ public class ExpressionUtil {
 }
 \end{verbatim}
 
-The \verb!constant()! method returns an expression corresponding to the value. Since we can overload all of the methods to also accept basic values and just call \verb!constant()! for them we will not call it explicitly in the upcoming examples.
+The \verb!constant()! method returns an expression that returns ``?'' as the SQL string and value as the SQL argument. Since we can overload all of the methods to also accept basic values and just call \verb!constant()! for them we will not call it explicitly in the upcoming examples.
 
 Now that we introduced the \verb!Expression! type we can finally define the \verb!Column! type we used to encode column metadata:
 
@@ -783,7 +780,7 @@ One of the main problems with method chaining is very poor support for hierarchy
   .endAnd()
 //...  
 \end{verbatim}
-However it is clumsy and the first time we would auto-format the source code we would lose all hints of hierarchy in the code structure.
+However this lacks any inherent structure and the first time we would auto-format the source code we would lose all hints of hierarchy in the code structure.
 
 The other problem with method chaining is extensibility. In the case we just shown \verb!and()! has to return a builder that includes all of the SQL expressions (including the \verb!and()! itself). However different databases have different expressions and we need different sets of expressions in different cases.
 
@@ -819,7 +816,7 @@ We would like to thank Juhan Aasaru, who developed the SQL DSL as a part of his 
 
 We would also like to thank the readers of the dow.ngra.de blog that pointed out some of the problems with our initial prototypes.
 
-This work was partially supported by Estonian Science Foundation grant No. ????. 
+This work was partially supported by Estonian Science Foundation grants No.\ 5567 and No.\ 6713.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -827,13 +824,13 @@ This work was partially supported by Estonian Science Foundation grant No. ????.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In this paper we have introduced two different domain specific languages, trying to use the most of Java type system to inhibit wrong behaviour at compile-time. Although the languages were from two completely different domains we managed to identify a number of general patterns, which we conjecture to be domain-independent and which will ease the work of future DSL designers.
+In this paper we have introduced two different domain specific languages, trying to use the most of Java type system to inhibit wrong behaviour at compile-time. Although the languages were from two completely different domains we managed to identify a number of generic patterns, which we conjecture to be domain-independent and which will likely ease the work of future DSL designers.
 
 Unlike most previous Java DSLs we found that mixing the Fluent Interface idiom with static functions, metadata and closures provides a better experience to the users than pure method chaining. This also provides for easier extension of the DSL and easier reuse of the DSL fragments. 
 
 We made very liberal use of the Java 5 Generics to improve the type safety properties of the DSLs. We managed to secure both case study DSLs against almost all type mistakes a programmer can make. To do that we introduced type lists that allowed us to verify chained method calls against the history of calls. We also found that it is essential to allow user to both escape the type safety limits and document the assumptions so that the rest of the DSL fragment could still be typesafe.
 
-We plan to continue investigating the limits of typesafe embedded DSLs in Java foremost by implementing new case studies and extracting patterns and idioms that of less generic manner. One of the developments we plan to pursue at the moment is a context-aware DSL for building hierarchical data in Java. There will definitely be others as well.
+We plan to continue investigating the limits of typesafe embedded DSLs in Java foremost by implementing new case studies and extracting patterns and idioms of less generic manner. One of the developments we plan to pursue at the moment is a context-aware DSL for building hierarchical data in Java. There will definitely be others as well.
 
 \bibliographystyle{abbrv}
 \bibliography{kabanov-raudjarv-pppj08}

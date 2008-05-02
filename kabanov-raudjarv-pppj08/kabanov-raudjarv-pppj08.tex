@@ -91,7 +91,7 @@ Already this example, simple as it is, illustrates the mistakes we can make:
 \end{itemize}
 The problem is that we would only find out about those errors when the query is executed. To make it worse, some errors would not even be reported and since most queries are assembled dynamically we can't ever be sure that it is error free.
 
-The solution we propose is to build on recent innovation in the area and embeds the whole of the SQL as a typesafe embedded DSL. The following example shows what we propose it to look like:
+The solution we propose is to build on recent innovation in the area and embed the whole of the SQL as a typesafe embedded DSL. The following example shows what we propose it to look like:
 
 \begin{verbatim}
 Person p = new Person(); 
@@ -111,7 +111,7 @@ for (Tuple3<String, Integer, Date> row : rows) {
 }
 \end{verbatim}
 
-Although this example does the same as the previous there is not a single string and any kind of misspelling or type inconsistency will show immediately as a compile-time error\footnote{Even more importantly with a sufficiently advanced IDE it will be marked as an error directly in the text of the program providing immediate feedback.}. In the following sections we explain how to achieve full type safety in this DSL.
+Unlike before in this example any kind of misspelling or type inconsistency will show up immediately as a compile-time error\footnote{Even more importantly with a sufficiently advanced IDE it will be marked as an error directly in the text of the program providing immediate feedback.}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Tuples}
@@ -214,7 +214,7 @@ public class FromBuilder<T extends Table>
 }
 \end{verbatim}
 
-Note that instead of having only one \verb!SelectBuilder! we choose to have many of them, numbered according to the amount of columns selected. Each of them carries all of the selected column types as generic type variables. This type variables can be used to generate tupled result or use the query as a subquery in a \emph{from} clause.
+Note that instead of having only one \verb!SelectBuilder! we choose to have many of them, numbered according to the amount of columns selected. Each of them carries all of the selected column types as generic type variables. These type variables can be used to generate tupled result or use the query as a subquery in a \emph{from} clause.
 
 Finally \verb!SelectBuilder3.list()! constructs the SQL query, executes it and returns the result:
 
@@ -235,7 +235,7 @@ However this solution is hard to extend when there is more than one table in the
 \subsection{Expressions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Now that we have the basic structure of the SQL queries set we need to encode arbitrary functions, aggregates and expressions. In a usual fluent interface they would be accessible using the same chained notation we used for building the query. However we chose instead to use static methods, imported to the local namespace using the \verb!import static! feature introduced in Java 5.
+Now that we have the basic structure of the SQL queries set we need to encode arbitrary functions, aggregates and expressions. In a usual fluent interface they would be accessible with the same chained notation we used for building the query. However we chose instead to use static methods, imported to the local namespace with the \verb!import static! feature introduced in Java 5.
 
 As far as we care a general SQL expression can be expressed with the following interface:
 
@@ -249,7 +249,7 @@ public interface Expression<E> {
 
 The \verb!E! type variable is the type of the value that the expression produces on evaluation. The corresponding class is returned by the \verb!getType()! method. Finally \verb!getSqlString()! returns the corresponding SQL fragment and \verb!getSqlArguments()! returns the arguments to be inserted instead of ``?'' in the query. 
 
-In \emph{where} clause we only permit to use expressions of type \verb!Expression<Boolean>!\footnote{Since we would like to permit arbitrary many such expressions to be passed to methods the ``varargs'' feature introduced in Java 5 is used. However since array component types cannot be generic we have to introduce the \texttt{BooleanExpression extends Expression$<$Boolean$>$} which complicates things a bit. We ignore this complication in the examples.} such as "like", "$<$", "=", etc. The operands of these expressions can already be arbitrary. To create these expressions we could use the following API:
+In \emph{where} clause we only permit to use expressions of type \verb!Expression<Boolean>!\footnote{We would like to use the ``varargs'' feature introduced in Java 5 with this expressions to allow arbitrary many of them. However since array component types cannot be generic we have to introduce the \texttt{BooleanExpression extends Expression$<$Boolean$>$} which complicates things a bit. We ignore this complication in the examples.} such as "like", "$<$", "=", etc. The operands of these expressions can already be arbitrary. To create these expressions we could use the following API:
 
 \begin{verbatim}
 public class ExpressionUtil {
@@ -413,7 +413,7 @@ So to find persons by name (and all persons if the name is \verb!null!) we can u
       .list();
 \end{verbatim}
 
-Such alternative API also allows to modify the query in reusable methods called using closures.
+Such an alternative API also allows us to modify the query in reusable methods that can be called using closures.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Rest Of SQL}
@@ -491,7 +491,7 @@ public class HelloWorld {
 }
 \end{verbatim}
 
-As we can see the Java compiler has generated a default constructor for the class. Additionally all classes are referred by their full names\footnote{In this example and further we omit the package from the class name for brevity}. The instructions we see do the following:
+As we can see the Java compiler has generated a default constructor for the class. Additionally all classes are referred by their full names\footnote{In this example and further on we omit the package from the class name for brevity}. The instructions we see do the following:
 \begin{itemize}
 \item \verb!ALOAD! loads the local variables to the top of the stack, index $0$ is \emph{this}.
 \item \verb!INVOKESPECIAL! in this case invokes super method consuming an \verb!Object! from the stack.
@@ -543,7 +543,7 @@ Since there is a different set of operations allowed for different stack sizes i
 
 We can apply the same idea to tracking variables, allowing to add only one variable at a time and providing methods \verb!loadVar*! and \verb!stroreVar*!. This way our class name becomes \verb!MethodBuilderS*V*! where $S$ stands for stack size and $V$ stands for variable count.
 
-Of course in addition to the sizes we also have to track the actual types. To do that each \verb!MethodBuilder! is parametrized by $N$ type variables where $N = S + V$. The \verb!MethodBuilderS2V1<PrintStream, Integer, String[]>! we saw previously in the compiler output means that two stack slots have types \verb!PrintStream! and \verb!Integer!, whereas the only local variable has type \verb!String[]!.
+Of course in addition to the sizes we also have to track the actual types. To do that each \verb!MethodBuilder! is parametrised by $N$ type variables where $N = S + V$. The \verb!MethodBuilderS2V1<PrintStream, Integer, String[]>! we saw previously in the compiler output means that two stack slots have types \verb!PrintStream! and \verb!Integer!, whereas the only local variable has type \verb!String[]!.
 
 To understand how the types are inferred let's see the implementation of \verb!push()! and \verb!pop()!:
 
@@ -563,7 +563,7 @@ public class MethodBuilderS2V1 <S0, S1, V0> {
   }
 \end{verbatim}
 
-The class in question, \verb!MethodBuilderS2V1! is parametrised by two stack types and one variable types. The method \verb!pop()! throws away the top stack type and returns an instance of \verb!MethodBuilderS1V1!. The method push on the other hand infers an addition type from the parameter passed to it and returns an instance of \verb!MethodBuilderS3V1! adding the inferred type to the top of the stack types.
+The class in question, \verb!MethodBuilderS2V1!, is parametrised by two stack types and one variable types. The method \verb!pop()! discards the top stack slot type and returns an instance of \verb!MethodBuilderS1V1!. The method \verb!push()! on the other hand infers an addition type from the argument and returns an instance of \verb!MethodBuilderS3V1! adding the inferred type to the top of the stack slot types.
 
 What does the \verb!invokeVirtualVoid()! look like? First of all, it needs to consume two stack variables, therefore we need at least \verb!MethodBuilderS2V*! class to call it. Therefore all classes with less stack variables will not have this method. Secondly we need to check that the types in the stack are fitting, but must allow some leniency due to subtyping:
 
@@ -713,13 +713,13 @@ This is the first principle for building a typesafe DSL as it allows to encode t
 
 We saw several examples of this pattern at work
 \begin{itemize}
-\item Select builders types encode information about selected columns. 
+\item Select builder types encode information about selected columns. 
 \item Bytecode builders encode information about stack slot and local variable types.
 \item Bytecode builder methods that consume stack slots must consume types fitting to the ones currently on stack.
 \item Bytecode builder local variable methods infer types from the values to variables and from variables to stack.
 \end{itemize}
 
-Type history is an important concept as it allows to reject actions based not on the types in the current method call, but in the previous method calls. In some DSLs type history comes naturally and makes up the basis of the language, like in case of the bytecode engineering DSL introduce previously. We conjecture that in any language that uses either stack or a stack-like environment this is the best approach to use.
+Type history is an important concept as it allows to reject actions based not on the types in the current method call, but also in the previous method calls. We conjecture that in any language that either uses stack or a stack-like environment this should be the best approach to use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typesafe Metadata}
@@ -734,14 +734,14 @@ Both our DSLs made use of typesafe metadata, some of those uses were less obviou
 \item SQL made use of pregenerated metadata dictionary that contained type information about database objects including tables and columns.
 \item The SQL expressions and named aliases provided information about the type of expression. This metadata was accessible via the local variable that the expression was saved to.
 \item The SQL \verb!SelectBuilder! encoded metadata about its column types, which would be important if we wanted to use it as a subquery again saved in a variable.
-\item The bytecode DSL used class literals, which are typesafe metadata embedded in Java language.
+\item The bytecode DSL used class literals, which is basically typesafe metadata embedded in Java language.
 \end{itemize}
 
 There are two type of typesafe metadata we can separate: metadata dictionary and runtime metadata. 
 
-Metadata dictionary is the metadata that is either generated or otherwise available in a static manner. This is the main building block of the DSLs that need to be extended beyond their basic syntax. 
+Metadata dictionary is either generated or otherwise available in a static manner. This is the main building block of the DSLs that need to act on many domain entities that are not specified ahead of time. 
 
-However we also need to extend the dictionary and that is where the runtime metadata comes in. The runtime metadata is encoded as a runtime expression with a static type. The type must encode all the metadata that we need. This way we can introduce local variables referring to such expressions on demand extending the metadata dictionary while still retaining the type safety property
+However we also need to extend the dictionary and that is where the runtime metadata comes in. It is encoded as a runtime expression with a static type. The type must encode all the information that we need. This way we can introduce local variables referring to such expressions on demand extending the metadata dictionary while still retaining the type safety property
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Unsafe Assumptions}
@@ -751,7 +751,7 @@ However we also need to extend the dictionary and that is where the runtime meta
 \emph{Allow the user to do type unsafe actions, but make sure he has to document his assumptions.}
 \end{quote}
 
-We saw two example of this pattern:
+We saw two examples of this pattern:
 \begin{itemize}
 \item In SQL the unchecked expressions still had to declare the expected type of the expression.
 \item The bytecode DSL allowed ignoring the type history by providing dedicated methods for type unsafe actions.
@@ -760,7 +760,7 @@ We saw two example of this pattern:
 
 Both parts of this pattern are very important. If you don't allow type unsafe actions it is likely that the users will find it limiting at some point and revert to bypassing your DSL. However using two APIs instead of one makes the code harder to read and maintain.
 
-If you don't allow users to document their assumptions you risk errors every time you do something unsafely. Assumptions allow to always hold the information about types in a local manner, even though it does not guarantee full type safety it still helps to develop safer code.
+If you don't allow users to document their assumptions you risk errors every time you do something unsafely. Assumptions allow one always to hold the information about types in a local manner; even though it does not guarantee full type safety, it still helps to develop safer code.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hierarchical Expressions}
@@ -780,9 +780,9 @@ One of the main problems with method chaining is very poor support for hierarchy
   .endAnd()
 //...  
 \end{verbatim}
-However this lacks any inherent structure and the first time we would auto-format the source code we would lose all hints of hierarchy in the code structure.
+Unfortunately this lacks any inherent structure and the first time we would auto-format the source code we would lose all hints of hierarchy in the code structure.
 
-The other problem with method chaining is extensibility. In the case we just shown \verb!and()! has to return a builder that includes all of the SQL expressions (including the \verb!and()! itself). However different databases have different expressions and we need different sets of expressions in different cases.
+The other problem with method chaining is extensibility. In the case we just shown \verb!and()! has to return a builder that includes all of the SQL expressions (including the \verb!and()! itself). The problem is that different databases employ very different sets of allowed expressions, which makes it impossible to just encode them all into the builder syntax.
 
 The obvious solution in this case is using static functions (and \verb!import static! to bring them into the local namespace). However static functions suffer from a different problem---unlike chained methods they cannot access the context. The context includes all the state that was accumulated by the previous chained method calls as well as type history. 
 
@@ -830,7 +830,7 @@ Unlike most previous Java DSLs we found that mixing the Fluent Interface idiom w
 
 We made very liberal use of the Java 5 Generics to improve the type safety properties of the DSLs. We managed to secure both case study DSLs against almost all type mistakes a programmer can make. To do that we introduced type lists that allowed us to verify chained method calls against the history of calls. We also found that it is essential to allow user to both escape the type safety limits and document the assumptions so that the rest of the DSL fragment could still be typesafe.
 
-We plan to continue investigating the limits of typesafe embedded DSLs in Java foremost by implementing new case studies and extracting patterns and idioms of less generic manner. One of the developments we plan to pursue at the moment is a context-aware DSL for building hierarchical data in Java. There will definitely be others as well.
+We plan to continue investigating the limits of typesafe embedded DSLs in Java foremost by implementing new case studies and extracting patterns and idioms of less generic manner. One particular development we plan to pursue at the moment is a context-aware DSL for building hierarchical data (like XML) in Java. 
 
 \bibliographystyle{abbrv}
 \bibliography{kabanov-raudjarv-pppj08}

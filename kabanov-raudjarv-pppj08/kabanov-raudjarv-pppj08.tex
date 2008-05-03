@@ -141,7 +141,7 @@ We use tuples to return the query results with the right types. Instead of \verb
 
 The first step towards type safety of the query itself is ensuring that table and column names we use do in fact exist and are spelled correctly. To ensure that we use the database metadata about the tables and columns to generate a typesafe \emph{metadata dictionary}.
 
-Metadata dictionary is a set of information about database describing tables and columns with their types. In Java the dictionary of the table Person could be the following\footnote{We do not care how the dictionary is generated as it is irrelevant to how it can be used}:
+Metadata dictionary is a set of information about database describing tables and columns with their types. In Java the dictionary of the table Person could be the following\footnote{How the dictionary is generated is not relevant to how it can be used and thus is not covered. We assume that some translator exists that converts the table and column information in the database descriptors to Java classes.}:
 
 \begin{verbatim}
 public class Person implements Table {
@@ -237,8 +237,7 @@ However this solution is hard to extend when there is more than one table in the
 
 Now that we have the basic structure of the SQL queries set we need to encode arbitrary functions, aggregates and expressions. In a usual fluent interface they would be accessible with the same chained notation we used for building the query. However we chose instead to use static methods, imported to the local namespace with the \verb!import static! feature introduced in Java 5.
 
-As far as we care a general SQL expression can be expressed with the following interface:
-
+A general SQL expression can be expressed with the following interface:
 \begin{verbatim}
 public interface Expression<E> {
   String getSqlString();
@@ -450,7 +449,7 @@ For a native SQL fragment one can include an untyped expression. It takes the co
       .list();
 \end{verbatim}
 
-Implementing the full SQL is only a matter of time and Aasaru has done that as a part of his master's thesis \cite{aasaru2008}.
+Although not covered in this article Aasaru has implemented full SQL select, update, insert  and delete query support as a part of his master's thesis \cite{aasaru2008}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -808,18 +807,6 @@ We introduced closures in both DSLs that we reviewed. They allow for a flexible 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Acknowledgements}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-We would like to thank Juhan Aasaru, who developed the SQL DSL as a part of his master's thesis \cite{aasaru2008}. He did a great job and contributed a lot of ideas that influenced this article. 
-
-We would also like to thank the readers of the dow.ngra.de blog that pointed out some of the problems with our initial prototypes.
-
-This work was partially supported by Estonian Science Foundation grants No.\ 5567 and No.\ 6713.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions and Future Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -831,6 +818,18 @@ Unlike most previous Java DSLs we found that mixing the Fluent Interface idiom w
 We made very liberal use of the Java 5 Generics to improve the type safety properties of the DSLs. We managed to secure both case study DSLs against almost all type mistakes a programmer can make. To do that we introduced type lists that allowed us to verify chained method calls against the history of calls. We also found that it is essential to allow user to both escape the type safety limits and document the assumptions so that the rest of the DSL fragment could still be typesafe.
 
 We plan to continue investigating the limits of typesafe embedded DSLs in Java foremost by implementing new case studies and extracting patterns and idioms of less generic manner. One particular development we plan to pursue at the moment is a context-aware DSL for building hierarchical data (like XML) in Java. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Acknowledgements}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We would like to thank Juhan Aasaru, who developed the SQL DSL as a part of his master's thesis \cite{aasaru2008}. He did a great job and contributed a lot of ideas that influenced this article. 
+
+We would also like to thank the readers of the dow.ngra.de blog that pointed out some of the problems with our initial prototypes.
+
+This work was partially supported by Estonian Science Foundation grant No.\ 6713.
 
 \bibliographystyle{abbrv}
 \bibliography{kabanov-raudjarv-pppj08}

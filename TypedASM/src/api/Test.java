@@ -1,3 +1,4 @@
+package api;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,17 +33,17 @@ public class Test {
     .endMethod()
     
     .beginStaticMethod(ACC_PUBLIC | ACC_STATIC, "main", void.class, String[].class)
+    .getStatic(System.class, "out", PrintStream.class)
+    .loadVar0(String[].class)
+    .push(0)
+    .arrayLoad(String[].class, Integer.class, String.class)    
+    .invoke().param(String.class).virtVoid(PrintStream.class, "println")
 //    .getStatic(System.class, "out", PrintStream.class)
 //    .closure(new Closure() {
 //      public <O> void apply(MethodBuilderS0V0<O> mb) {
 //        genSayHello(mb);
 //      }
 //    })
-    .getStatic(System.class, "out", PrintStream.class)
-    .loadVar0(String[].class)
-    .push(0)
-    .arrayLoad(String[].class, Integer.class, String.class)    
-    .invoke().param(String.class).virtVoid(PrintStream.class, "println")
     .returnVoid()
     .endMethod();
     
